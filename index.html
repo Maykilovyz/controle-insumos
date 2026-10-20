@@ -5,117 +5,167 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Almoxarifado da Sala</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: cabeçalho com resumo, abas (Estoque / Movimentar / Histórico / Materiais), cada aba um painel de trabalho */
+/* Layout: barra de navegação translúcida e fixa, título grande centralizado, resumo em 4 números, conteúdo em cartões brancos com muito respiro */
 :root{
-  --bg:#f3f5f4; --surface:#ffffff; --fg:#1b2422; --muted:#5d6b67; --line:#d9e0dd;
-  --accent:#1f6f5c; --accent-fg:#ffffff; --accent-soft:#e1efe9;
-  --in:#1d7a46; --in-soft:#e2f3e8; --out:#b4462b; --out-soft:#f8e6e0;
-  --warn:#9a6a00; --warn-soft:#fbf0d4;
-  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --bg:#f5f5f7; --surface:#ffffff; --fg:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --field:#f5f5f7;
+  --accent:#0071e3; --accent-fg:#ffffff; --accent-soft:#e8f1fc;
+  --in:#1a8a3a; --in-soft:#e6f4ea; --out:#d7372b; --out-soft:#fbe9e7;
+  --warn:#b25e00; --warn-soft:#fdf0dc;
+  --bar:rgba(245,245,247,.78); --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 28px rgba(0,0,0,.06);
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.25,.1,.25,1);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#111816; --surface:#18211f; --fg:#e4ebe8; --muted:#9aa9a4; --line:#2a3632;
-  --accent:#5cc2a4; --accent-fg:#0d1513; --accent-soft:#1d3530;
-  --in:#62cf8f; --in-soft:#173126; --out:#f08a6c; --out-soft:#3a201a;
-  --warn:#e8bb52; --warn-soft:#352b14; color-scheme:dark;}}
+  --bg:#000000; --surface:#1c1c1e; --fg:#f5f5f7; --muted:#a1a1a6; --line:#38383a; --field:#2c2c2e;
+  --accent:#2997ff; --accent-fg:#ffffff; --accent-soft:#0f2a47;
+  --in:#30d158; --in-soft:#10321b; --out:#ff6961; --out-soft:#3d1614;
+  --warn:#ffb340; --warn-soft:#3a2a0e;
+  --bar:rgba(22,22,23,.78); --shadow:0 0 0 1px rgba(255,255,255,.06); color-scheme:dark;}}
 :root[data-theme="dark"]{
-  --bg:#111816; --surface:#18211f; --fg:#e4ebe8; --muted:#9aa9a4; --line:#2a3632;
-  --accent:#5cc2a4; --accent-fg:#0d1513; --accent-soft:#1d3530;
-  --in:#62cf8f; --in-soft:#173126; --out:#f08a6c; --out-soft:#3a201a;
-  --warn:#e8bb52; --warn-soft:#352b14; color-scheme:dark;}
+  --bg:#000000; --surface:#1c1c1e; --fg:#f5f5f7; --muted:#a1a1a6; --line:#38383a; --field:#2c2c2e;
+  --accent:#2997ff; --accent-fg:#ffffff; --accent-soft:#0f2a47;
+  --in:#30d158; --in-soft:#10321b; --out:#ff6961; --out-soft:#3d1614;
+  --warn:#ffb340; --warn-soft:#3a2a0e;
+  --bar:rgba(22,22,23,.78); --shadow:0 0 0 1px rgba(255,255,255,.06); color-scheme:dark;}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
-.wrap{max-width:1080px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
-h1{margin:0;font-size:1.6rem;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
-.sub{margin:2px 0 0;color:var(--muted);font-size:.9rem}
-h2{margin:0;font-size:1.1rem;font-weight:600}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
-.stat b{display:block;font-family:var(--mono);font-size:1.5rem;font-weight:500;font-variant-numeric:tabular-nums}
-.stat span{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.47;letter-spacing:-.022em;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
+
+/* barra superior */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1024px;margin:0 auto;padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+.brand{font-weight:600;font-size:1rem;letter-spacing:-.01em;white-space:nowrap}
+.bar-actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.link{font:inherit;font-size:.8rem;letter-spacing:-.01em;background:none;border:0;color:var(--accent);cursor:pointer;padding:6px 8px;border-radius:8px;white-space:nowrap}
+.link:hover{text-decoration:underline}
+
+.wrap{max-width:1024px;margin:0 auto;padding-block:48px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:40px}
+
+/* abertura */
+.hero{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.eyebrow{margin:0;color:var(--accent);font-size:1rem;font-weight:600;letter-spacing:-.01em}
+h1{margin:0;font-size:clamp(2.2rem,6vw,3.5rem);font-weight:700;letter-spacing:-.035em;line-height:1.05;text-wrap:balance}
+.sub{margin:0;max-width:34ch;color:var(--muted);font-size:clamp(1.05rem,2.4vw,1.3rem);line-height:1.38;text-wrap:balance}
+h2{margin:0;font-size:1.5rem;font-weight:700;letter-spacing:-.025em}
+
+/* resumo */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.stat{background:var(--surface);border-radius:18px;padding:22px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.stat b{font-size:2.4rem;font-weight:600;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.85rem;letter-spacing:-.01em}
 .stat.alert b{color:var(--warn)}
-nav{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
-nav button{font:inherit;font-weight:500;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
-nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
-nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.panel{display:flex;flex-direction:column;gap:14px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.toolbar input,.toolbar select{flex:1 1 180px}
-input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
-label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:500;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.stat.in b{color:var(--in)}
+.stat.out b{color:var(--out)}
+
+/* abas como controle segmentado */
+nav{display:flex;justify-content:center}
+.tabs{display:inline-flex;gap:2px;background:var(--surface);box-shadow:var(--shadow);border-radius:999px;padding:4px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{font:inherit;font-size:.9rem;font-weight:500;letter-spacing:-.01em;background:none;border:0;color:var(--muted);padding:9px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .25s var(--ease),color .25s var(--ease)}
+.tabs button:hover{color:var(--fg)}
+.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg)}
+button:focus-visible,input:focus-visible,select:focus-visible,.file:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+
+.panel{display:flex;flex-direction:column;gap:20px;animation:rise .45s var(--ease) both}
+@keyframes rise{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--surface);border-radius:22px;padding:clamp(20px,4vw,36px);box-shadow:var(--shadow)}
+.narrow{max-width:680px;width:100%;margin:0 auto}
+.stack{display:flex;flex-direction:column;gap:20px}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.toolbar input,.toolbar select{flex:1 1 200px}
+input,select{font:inherit;font-size:1rem;letter-spacing:-.01em;color:var(--fg);background:var(--field);border:1px solid transparent;border-radius:12px;padding:12px 14px;width:100%;min-width:0;transition:border-color .2s var(--ease),background .2s var(--ease)}
+input:focus,select:focus{border-color:var(--accent);background:var(--surface);outline:none}
+.toolbar input,.toolbar select{background:var(--surface);box-shadow:var(--shadow)}
+label{display:flex;flex-direction:column;gap:6px;font-size:.85rem;font-weight:500;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
 .full{grid-column:1/-1}
-.btn{font:inherit;font-weight:600;border:1px solid transparent;border-radius:6px;padding:9px 16px;cursor:pointer;background:var(--accent);color:var(--accent-fg)}
-.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
-.btn.danger{background:transparent;color:var(--out);border-color:var(--out)}
-.btn.small{padding:4px 10px;font-size:.82rem}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{font:inherit;font-weight:600;border:0;background:transparent;color:var(--muted);padding:8px 18px;cursor:pointer}
-.seg button[aria-pressed="true"].in{background:var(--in-soft);color:var(--in)}
-.seg button[aria-pressed="true"].out{background:var(--out-soft);color:var(--out)}
-.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-table{width:100%;border-collapse:collapse;font-size:.92rem}
-th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
-th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;white-space:nowrap}
+.btn{font:inherit;font-size:1rem;font-weight:500;letter-spacing:-.01em;border:0;border-radius:999px;padding:12px 24px;cursor:pointer;background:var(--accent);color:var(--accent-fg);transition:filter .2s var(--ease),transform .1s var(--ease)}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.btn.danger{background:var(--out);color:#fff}
+.btn.small{padding:6px 14px;font-size:.82rem}
+.btn.quiet{background:transparent;color:var(--accent);padding:6px 10px}
+.btn.quiet.danger{color:var(--out);background:var(--out-soft)}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--field);border-radius:12px;padding:3px;gap:3px}
+.seg button{font:inherit;font-weight:600;font-size:.95rem;border:0;background:transparent;color:var(--muted);padding:10px;border-radius:10px;cursor:pointer;transition:background .25s var(--ease),color .25s var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.seg button[aria-pressed="true"].in{color:var(--in)}
+.seg button[aria-pressed="true"].out{color:var(--out)}
+
+.tbl{overflow-x:auto;background:var(--surface);border-radius:18px;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;letter-spacing:-.01em}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.75rem;color:var(--muted);font-weight:500;white-space:nowrap}
 tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.code{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
-.pill{display:inline-block;font-size:.75rem;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
-.pill.ok{background:var(--accent-soft);color:var(--accent)}
-.pill.low{background:var(--warn-soft);color:var(--warn)}
-.pill.zero{background:var(--out-soft);color:var(--out)}
-.pill.in{background:var(--in-soft);color:var(--in)}
-.pill.out{background:var(--out-soft);color:var(--out)}
-.tag{font-size:.72rem;font-weight:600;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:0 5px;margin-left:6px}
-.empty{color:var(--muted);text-align:center;padding:24px}
-.msg{font-size:.88rem;font-weight:500;min-height:1.3em;margin:0}
+tbody tr{transition:background .15s var(--ease)}
+tbody tr:hover{background:var(--field)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.num b{font-weight:600}
+.code{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:500;white-space:nowrap;color:var(--muted)}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill.ok{color:var(--in)} .pill.low{color:var(--warn)} .pill.zero{color:var(--out)}
+.pill.in{color:var(--in)} .pill.out{color:var(--out)}
+.empty{color:var(--muted);text-align:center;padding:40px 16px}
+.msg{font-size:.9rem;font-weight:500;min-height:1.3em;margin:0}
 .msg.err{color:var(--out)} .msg.ok{color:var(--in)}
 .note{color:var(--muted);font-size:.85rem;margin:0}
-.banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--warn-soft);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.88rem}
-.confirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
-.actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
-@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.center{text-align:center}
+.balance{background:var(--field);border-radius:12px;padding:12px 14px;font-size:.95rem;margin:0}
+.balance:empty{display:none}
+.banner{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;text-align:center;background:var(--surface);box-shadow:var(--shadow);border-radius:18px;padding:14px 20px;font-size:.92rem;color:var(--muted)}
+.banner b{color:var(--fg)}
+.confirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.82rem}
+.actions{display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap}
+.file{display:inline-flex;flex-direction:row;font-size:.8rem;font-weight:400;color:var(--accent);cursor:pointer;padding:6px 8px;border-radius:8px;white-space:nowrap}
+.file:hover{text-decoration:underline}
+footer{color:var(--muted);font-size:.78rem;text-align:center;border-top:1px solid var(--line);padding-top:20px}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat b{font-size:2rem}.wrap{padding-block:32px 64px;gap:28px}}
+@media (max-width:420px){.brand{display:none}.bar-in{justify-content:center}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 
+<div class="bar">
+  <div class="bar-in">
+    <span class="brand">Almoxarifado</span>
+    <div class="bar-actions">
+      <button class="link" id="btnBackup" type="button">Copiar backup</button>
+      <label class="file">Restaurar backup<input id="fileRestore" type="file" accept=".json,application/json,text/plain" hidden></label>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
-  <header>
-    <div>
-      <h1>Almoxarifado da Sala</h1>
-      <p class="sub">Controle de insumos: o que tem, o que entrou, o que saiu e quem mexeu.</p>
-    </div>
-    <div class="toolbar">
-      <button class="btn ghost small" id="btnBackup" type="button">Copiar backup</button>
-      <label class="btn ghost small" style="flex-direction:row;color:var(--fg);font-weight:600">Restaurar backup<input id="fileRestore" type="file" accept=".json,application/json,text/plain" hidden></label>
-    </div>
+  <header class="hero">
+    <p class="eyebrow">Controle de insumos</p>
+    <h1>Almoxarifado da Sala</h1>
+    <p class="sub">Saiba o que tem, o que entrou, o que saiu e quem mexeu.</p>
   </header>
 
   <div class="banner" id="demoBanner" hidden>
-    <span>Os dados abaixo são <b>exemplos</b> para você ver como funciona.</span>
-    <button class="btn small" id="btnClearDemo" type="button">Apagar exemplos e começar do zero</button>
+    <span>Você está vendo <b>dados de exemplo</b>.</span>
+    <button class="btn small" id="btnClearDemo" type="button">Apagar exemplos e começar</button>
   </div>
 
   <section class="stats" aria-label="Resumo">
-    <div class="stat"><span>Materiais</span><b id="sItems">0</b></div>
-    <div class="stat alert"><span>Abaixo do mínimo</span><b id="sLow">0</b></div>
-    <div class="stat"><span>Entradas hoje</span><b id="sIn">0</b></div>
-    <div class="stat"><span>Saídas hoje</span><b id="sOut">0</b></div>
+    <div class="stat"><b id="sItems">0</b><span>Materiais cadastrados</span></div>
+    <div class="stat alert"><b id="sLow">0</b><span>Precisam de reposição</span></div>
+    <div class="stat in"><b id="sIn">0</b><span>Entradas hoje</span></div>
+    <div class="stat out"><b id="sOut">0</b><span>Saídas hoje</span></div>
   </section>
 
-  <nav role="tablist">
+  <nav><div class="tabs" role="tablist">
     <button role="tab" data-tab="estoque" aria-selected="true">Estoque</button>
-    <button role="tab" data-tab="movimentar" aria-selected="false">Registrar entrada/saída</button>
+    <button role="tab" data-tab="movimentar" aria-selected="false">Entrada / Saída</button>
     <button role="tab" data-tab="historico" aria-selected="false">Histórico</button>
-    <button role="tab" data-tab="materiais" aria-selected="false">Cadastrar materiais</button>
-  </nav>
+    <button role="tab" data-tab="materiais" aria-selected="false">Materiais</button>
+  </div></nav>
 
   <!-- ESTOQUE -->
   <section class="panel" id="tab-estoque">
@@ -131,8 +181,9 @@ td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabu
 
   <!-- MOVIMENTAR -->
   <section class="panel" id="tab-movimentar" hidden>
-    <form class="card" id="formMov" novalidate>
-      <div style="display:flex;flex-direction:column;gap:14px">
+    <form class="card narrow" id="formMov" novalidate>
+      <div class="stack">
+        <h2>Registrar movimentação</h2>
         <div class="seg" role="group" aria-label="Tipo de movimentação">
           <button type="button" class="in" id="tipoIn" aria-pressed="true">Entrada</button>
           <button type="button" class="out" id="tipoOut" aria-pressed="false">Saída</button>
@@ -141,10 +192,10 @@ td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabu
           <label class="full">Material<select id="mMat" required></select></label>
           <label>Quantidade<input id="mQtd" type="number" min="0.01" step="any" inputmode="decimal" required></label>
           <label>Data e hora<input id="mData" type="datetime-local" required></label>
-          <label>Responsável<input id="mResp" type="text" placeholder="Quem pegou ou trouxe" required></label>
-          <label class="full">Observação (opcional)<input id="mObs" type="text" placeholder="Ex.: usado na aula do 9º ano, doação, compra NF 123"></label>
+          <label class="full">Responsável<input id="mResp" type="text" placeholder="Quem pegou ou trouxe" required></label>
+          <label class="full">Observação (opcional)<input id="mObs" type="text" placeholder="Ex.: aula do 9º ano, doação, compra NF 123"></label>
         </div>
-        <p class="note" id="mSaldo"></p>
+        <p class="balance" id="mSaldo"></p>
         <div class="toolbar"><button class="btn" type="submit" id="mSubmit">Registrar entrada</button><p class="msg" id="mMsg" role="status"></p></div>
       </div>
     </form>
@@ -165,23 +216,25 @@ td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabu
 
   <!-- MATERIAIS -->
   <section class="panel" id="tab-materiais" hidden>
-    <form class="card" id="formMat" novalidate>
-      <div style="display:flex;flex-direction:column;gap:14px">
+    <form class="card narrow" id="formMat" novalidate>
+      <div class="stack">
         <h2 id="matTitle">Novo material</h2>
         <div class="grid">
           <label class="full">Nome<input id="cNome" type="text" placeholder="Ex.: Resistor 220Ω" required></label>
           <label>Categoria<input id="cCat" type="text" list="catList" placeholder="Ex.: Eletrônica"></label>
           <label>Unidade<select id="cUn"><option>un</option><option>cx</option><option>pct</option><option>m</option><option>kg</option><option>L</option><option>rolo</option><option>folha</option></select></label>
-          <label>Local na sala<input id="cLocal" type="text" placeholder="Ex.: Armário 2, prateleira B"></label>
+          <label class="full">Local na sala<input id="cLocal" type="text" placeholder="Ex.: Armário 2, prateleira B"></label>
           <label>Estoque mínimo<input id="cMin" type="number" min="0" step="any" value="0"></label>
           <label id="cIniWrap">Quantidade inicial<input id="cIni" type="number" min="0" step="any" value="0"></label>
         </div>
         <datalist id="catList"></datalist>
-        <div class="toolbar"><button class="btn" type="submit" id="cSubmit">Cadastrar material</button><button class="btn ghost" type="button" id="cCancel" hidden>Cancelar edição</button><p class="msg" id="cMsg" role="status"></p></div>
+        <div class="toolbar"><button class="btn" type="submit" id="cSubmit">Cadastrar material</button><button class="btn ghost" type="button" id="cCancel" hidden>Cancelar</button><p class="msg" id="cMsg" role="status"></p></div>
       </div>
     </form>
-    <p class="note">Para editar ou excluir um material, use os botões na aba Estoque.</p>
+    <p class="note center">Para editar ou excluir um material, use os botões na aba Estoque.</p>
   </section>
+
+  <footer>Os dados ficam salvos neste navegador. Use “Copiar backup” para guardar uma cópia.</footer>
 </div>
 
 <script>
@@ -243,10 +296,10 @@ function renderEstoque(){
     .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   $('estBody').innerHTML=rows.length?rows.map(m=>{const s=status(m);
     const del=pendingDel===m.id
-      ?`<span class="confirm">Excluir com histórico? <button class="btn danger small" data-del-ok="${m.id}">Sim, excluir</button><button class="btn ghost small" data-del-no>Não</button></span>`
-      :`<button class="btn ghost small" data-edit="${m.id}">Editar</button><button class="btn ghost small" data-del="${m.id}">Excluir</button>`;
+      ?`<span class="confirm">Excluir com histórico? <button class="btn danger small" data-del-ok="${m.id}">Sim, excluir</button><button class="btn quiet small" data-del-no>Não</button></span>`
+      :`<button class="btn quiet small" data-edit="${m.id}">Editar</button><button class="btn quiet small" data-del="${m.id}">Excluir</button>`;
     return `<tr><td class="code">${esc(m.cod)}</td><td>${esc(m.nome)}${m.cat?`<div class="note">${esc(m.cat)}</div>`:''}</td><td>${esc(m.local)||'—'}</td>
-      <td class="num">${fmtN(saldo(m.id))} ${esc(m.un)}</td><td class="num">${fmtN(m.min)}</td><td><span class="pill ${s}">${stLabel[s]}</span></td><td><div class="actions">${del}</div></td></tr>`}).join('')
+      <td class="num"><b>${fmtN(saldo(m.id))}</b> ${esc(m.un)}</td><td class="num">${fmtN(m.min)}</td><td><span class="pill ${s}">${stLabel[s]}</span></td><td><div class="actions">${del}</div></td></tr>`}).join('')
     :`<tr><td colspan="7" class="empty">${db.materiais.length?'Nenhum material com esse filtro.':'Nenhum material cadastrado. Vá em “Cadastrar materiais” para adicionar o primeiro.'}</td></tr>`;
 }
 
@@ -274,7 +327,7 @@ function renderHist(){
     return `<tr><td class="num" style="text-align:left">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
     <td><span class="pill ${x.tipo}">${x.tipo==='in'?'Entrada':'Saída'}</span></td><td>${m?esc(m.nome):'<span class="note">(removido)</span>'}</td>
     <td class="num">${x.tipo==='in'?'+':'−'}${fmtN(x.qtd)} ${m?esc(m.un):''}</td><td>${esc(x.resp)}</td><td>${esc(x.obs)||'—'}</td>
-    <td><button class="btn ghost small" data-undo="${x.id}" title="Apagar este registro">Apagar</button></td></tr>`}).join('')
+    <td><button class="btn quiet small" data-undo="${x.id}" title="Apagar este registro">Apagar</button></td></tr>`}).join('')
     :'<tr><td colspan="7" class="empty">Nenhuma movimentação encontrada.</td></tr>';
 }
 
