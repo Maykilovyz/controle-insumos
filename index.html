@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Almoxarifado da Sala</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: cabeçalho com resumo, abas (Estoque / Movimentar / Histórico / Materiais), cada aba um painel de trabalho */
+:root{
+  --bg:#f3f5f4; --surface:#ffffff; --fg:#1b2422; --muted:#5d6b67; --line:#d9e0dd;
+  --accent:#1f6f5c; --accent-fg:#ffffff; --accent-soft:#e1efe9;
+  --in:#1d7a46; --in-soft:#e2f3e8; --out:#b4462b; --out-soft:#f8e6e0;
+  --warn:#9a6a00; --warn-soft:#fbf0d4;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111816; --surface:#18211f; --fg:#e4ebe8; --muted:#9aa9a4; --line:#2a3632;
+  --accent:#5cc2a4; --accent-fg:#0d1513; --accent-soft:#1d3530;
+  --in:#62cf8f; --in-soft:#173126; --out:#f08a6c; --out-soft:#3a201a;
+  --warn:#e8bb52; --warn-soft:#352b14; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#111816; --surface:#18211f; --fg:#e4ebe8; --muted:#9aa9a4; --line:#2a3632;
+  --accent:#5cc2a4; --accent-fg:#0d1513; --accent-soft:#1d3530;
+  --in:#62cf8f; --in-soft:#173126; --out:#f08a6c; --out-soft:#3a201a;
+  --warn:#e8bb52; --warn-soft:#352b14; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{margin:0;font-size:1.6rem;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.sub{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+h2{margin:0;font-size:1.1rem;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.stat b{display:block;font-family:var(--mono);font-size:1.5rem;font-weight:500;font-variant-numeric:tabular-nums}
+.stat span{color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+.stat.alert b{color:var(--warn)}
+nav{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{font:inherit;font-weight:500;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.toolbar input,.toolbar select{flex:1 1 180px}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:500;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.full{grid-column:1/-1}
+.btn{font:inherit;font-weight:600;border:1px solid transparent;border-radius:6px;padding:9px 16px;cursor:pointer;background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--out);border-color:var(--out)}
+.btn.small{padding:4px 10px;font-size:.82rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-weight:600;border:0;background:transparent;color:var(--muted);padding:8px 18px;cursor:pointer}
+.seg button[aria-pressed="true"].in{background:var(--in-soft);color:var(--in)}
+.seg button[aria-pressed="true"].out{background:var(--out-soft);color:var(--out)}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.code{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+.pill{display:inline-block;font-size:.75rem;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)}
+.pill.low{background:var(--warn-soft);color:var(--warn)}
+.pill.zero{background:var(--out-soft);color:var(--out)}
+.pill.in{background:var(--in-soft);color:var(--in)}
+.pill.out{background:var(--out-soft);color:var(--out)}
+.tag{font-size:.72rem;font-weight:600;color:var(--warn);border:1px solid var(--warn);border-radius:4px;padding:0 5px;margin-left:6px}
+.empty{color:var(--muted);text-align:center;padding:24px}
+.msg{font-size:.88rem;font-weight:500;min-height:1.3em;margin:0}
+.msg.err{color:var(--out)} .msg.ok{color:var(--in)}
+.note{color:var(--muted);font-size:.85rem;margin:0}
+.banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--warn-soft);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:.88rem}
+.confirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Almoxarifado da Sala</h1>
+      <p class="sub">Controle de insumos: o que tem, o que entrou, o que saiu e quem mexeu.</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost small" id="btnBackup" type="button">Copiar backup</button>
+      <label class="btn ghost small" style="flex-direction:row;color:var(--fg);font-weight:600">Restaurar backup<input id="fileRestore" type="file" accept=".json,application/json,text/plain" hidden></label>
+    </div>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <span>Os dados abaixo são <b>exemplos</b> para você ver como funciona.</span>
+    <button class="btn small" id="btnClearDemo" type="button">Apagar exemplos e começar do zero</button>
+  </div>
+
+  <section class="stats" aria-label="Resumo">
+    <div class="stat"><span>Materiais</span><b id="sItems">0</b></div>
+    <div class="stat alert"><span>Abaixo do mínimo</span><b id="sLow">0</b></div>
+    <div class="stat"><span>Entradas hoje</span><b id="sIn">0</b></div>
+    <div class="stat"><span>Saídas hoje</span><b id="sOut">0</b></div>
+  </section>
+
+  <nav role="tablist">
+    <button role="tab" data-tab="estoque" aria-selected="true">Estoque</button>
+    <button role="tab" data-tab="movimentar" aria-selected="false">Registrar entrada/saída</button>
+    <button role="tab" data-tab="historico" aria-selected="false">Histórico</button>
+    <button role="tab" data-tab="materiais" aria-selected="false">Cadastrar materiais</button>
+  </nav>
+
+  <!-- ESTOQUE -->
+  <section class="panel" id="tab-estoque">
+    <div class="toolbar">
+      <input id="fEstBusca" type="search" placeholder="Buscar por nome, código ou local">
+      <select id="fEstStatus"><option value="">Todos os status</option><option value="low">Abaixo do mínimo</option><option value="zero">Zerado</option><option value="ok">OK</option></select>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Código</th><th>Material</th><th>Local</th><th class="num">Em estoque</th><th class="num">Mínimo</th><th>Status</th><th></th></tr></thead>
+      <tbody id="estBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- MOVIMENTAR -->
+  <section class="panel" id="tab-movimentar" hidden>
+    <form class="card" id="formMov" novalidate>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="seg" role="group" aria-label="Tipo de movimentação">
+          <button type="button" class="in" id="tipoIn" aria-pressed="true">Entrada</button>
+          <button type="button" class="out" id="tipoOut" aria-pressed="false">Saída</button>
+        </div>
+        <div class="grid">
+          <label class="full">Material<select id="mMat" required></select></label>
+          <label>Quantidade<input id="mQtd" type="number" min="0.01" step="any" inputmode="decimal" required></label>
+          <label>Data e hora<input id="mData" type="datetime-local" required></label>
+          <label>Responsável<input id="mResp" type="text" placeholder="Quem pegou ou trouxe" required></label>
+          <label class="full">Observação (opcional)<input id="mObs" type="text" placeholder="Ex.: usado na aula do 9º ano, doação, compra NF 123"></label>
+        </div>
+        <p class="note" id="mSaldo"></p>
+        <div class="toolbar"><button class="btn" type="submit" id="mSubmit">Registrar entrada</button><p class="msg" id="mMsg" role="status"></p></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section class="panel" id="tab-historico" hidden>
+    <div class="toolbar">
+      <select id="fHistMat"><option value="">Todos os materiais</option></select>
+      <select id="fHistTipo"><option value="">Entradas e saídas</option><option value="in">Só entradas</option><option value="out">Só saídas</option></select>
+      <input id="fHistResp" type="search" placeholder="Filtrar por responsável">
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Data</th><th>Tipo</th><th>Material</th><th class="num">Qtd.</th><th>Responsável</th><th>Observação</th><th></th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- MATERIAIS -->
+  <section class="panel" id="tab-materiais" hidden>
+    <form class="card" id="formMat" novalidate>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <h2 id="matTitle">Novo material</h2>
+        <div class="grid">
+          <label class="full">Nome<input id="cNome" type="text" placeholder="Ex.: Resistor 220Ω" required></label>
+          <label>Categoria<input id="cCat" type="text" list="catList" placeholder="Ex.: Eletrônica"></label>
+          <label>Unidade<select id="cUn"><option>un</option><option>cx</option><option>pct</option><option>m</option><option>kg</option><option>L</option><option>rolo</option><option>folha</option></select></label>
+          <label>Local na sala<input id="cLocal" type="text" placeholder="Ex.: Armário 2, prateleira B"></label>
+          <label>Estoque mínimo<input id="cMin" type="number" min="0" step="any" value="0"></label>
+          <label id="cIniWrap">Quantidade inicial<input id="cIni" type="number" min="0" step="any" value="0"></label>
+        </div>
+        <datalist id="catList"></datalist>
+        <div class="toolbar"><button class="btn" type="submit" id="cSubmit">Cadastrar material</button><button class="btn ghost" type="button" id="cCancel" hidden>Cancelar edição</button><p class="msg" id="cMsg" role="status"></p></div>
+      </div>
+    </form>
+    <p class="note">Para editar ou excluir um material, use os botões na aba Estoque.</p>
+  </section>
+</div>
+
+<script>
+const KEY='insumos-sala-v1';
+let db={materiais:[],movs:[],seq:0,demo:false};
+let tipo='in', editId=null, pendingDel=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtN=n=>Number(n).toLocaleString('pt-BR',{maximumFractionDigits:2});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const nowLocal=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){db=JSON.parse(r);return true}}catch(e){}return false}
+
+function saldo(id){return db.movs.reduce((s,m)=>m.mat===id?s+(m.tipo==='in'?m.qtd:-m.qtd):s,0)}
+function status(m){const q=saldo(m.id);if(q<=0)return'zero';if(q<m.min)return'low';return'ok'}
+const stLabel={ok:'OK',low:'Abaixo do mínimo',zero:'Zerado'};
+const matById=id=>db.materiais.find(m=>m.id===id);
+
+function seed(){
+  const d=(days,h)=>{const x=new Date();x.setDate(x.getDate()-days);x.setHours(h,0,0,0);x.setMinutes(x.getMinutes()-x.getTimezoneOffset());return x.toISOString().slice(0,16)};
+  const mats=[
+    ['Arduino Uno R3','Eletrônica','un','Armário 1, prateleira A',5],
+    ['Resistor 220Ω','Eletrônica','un','Gaveteiro 3',50],
+    ['Jumper macho-macho','Eletrônica','pct','Gaveteiro 2',3],
+    ['Sensor ultrassônico HC-SR04','Sensores','un','Armário 1, prateleira B',4],
+    ['Papel A4','Papelaria','folha','Armário 2',200],
+    ['Fita isolante','Ferramentas','rolo','Bancada',2]];
+  db={materiais:[],movs:[],seq:0,demo:true};
+  mats.forEach(([nome,cat,un,local,min])=>{db.seq++;db.materiais.push({id:uid(),cod:'MAT-'+String(db.seq).padStart(3,'0'),nome,cat,un,local,min})});
+  const [ard,res,jmp,sen,pap,fit]=db.materiais.map(m=>m.id);
+  const mv=(mat,t,qtd,data,resp,obs)=>db.movs.push({id:uid(),mat,tipo:t,qtd,data,resp,obs});
+  mv(ard,'in',12,d(20,9),'Prof. Rayldo','Compra inicial');
+  mv(res,'in',200,d(20,9),'Prof. Rayldo','Kit de resistores');
+  mv(jmp,'in',6,d(20,9),'Prof. Rayldo','');
+  mv(sen,'in',8,d(15,10),'Coordenação','Doação');
+  mv(pap,'in',500,d(10,8),'Secretaria','1 resma');
+  mv(fit,'in',3,d(10,8),'Secretaria','');
+  mv(ard,'out',4,d(3,14),'Ana (9º A)','Projeto feira de ciências');
+  mv(sen,'out',5,d(3,14),'Ana (9º A)','Projeto feira de ciências');
+  mv(res,'out',170,d(1,10),'Turma 8º B','Aula de circuitos');
+  mv(fit,'out',3,d(0,9),'Prof. Rayldo','Manutenção da bancada');
+  mv(pap,'out',120,d(0,11),'Prof. Rayldo','Impressão de provas');
+}
+
+function renderStats(){
+  const today=nowLocal().slice(0,10);
+  $('sItems').textContent=db.materiais.length;
+  $('sLow').textContent=db.materiais.filter(m=>status(m)!=='ok').length;
+  $('sIn').textContent=db.movs.filter(m=>m.tipo==='in'&&m.data.slice(0,10)===today).length;
+  $('sOut').textContent=db.movs.filter(m=>m.tipo==='out'&&m.data.slice(0,10)===today).length;
+  $('demoBanner').hidden=!db.demo;
+}
+
+function renderEstoque(){
+  const q=$('fEstBusca').value.trim().toLowerCase(), st=$('fEstStatus').value;
+  const rows=db.materiais.filter(m=>(!q||[m.nome,m.cod,m.local,m.cat].join(' ').toLowerCase().includes(q))&&(!st||status(m)===st))
+    .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  $('estBody').innerHTML=rows.length?rows.map(m=>{const s=status(m);
+    const del=pendingDel===m.id
+      ?`<span class="confirm">Excluir com histórico? <button class="btn danger small" data-del-ok="${m.id}">Sim, excluir</button><button class="btn ghost small" data-del-no>Não</button></span>`
+      :`<button class="btn ghost small" data-edit="${m.id}">Editar</button><button class="btn ghost small" data-del="${m.id}">Excluir</button>`;
+    return `<tr><td class="code">${esc(m.cod)}</td><td>${esc(m.nome)}${m.cat?`<div class="note">${esc(m.cat)}</div>`:''}</td><td>${esc(m.local)||'—'}</td>
+      <td class="num">${fmtN(saldo(m.id))} ${esc(m.un)}</td><td class="num">${fmtN(m.min)}</td><td><span class="pill ${s}">${stLabel[s]}</span></td><td><div class="actions">${del}</div></td></tr>`}).join('')
+    :`<tr><td colspan="7" class="empty">${db.materiais.length?'Nenhum material com esse filtro.':'Nenhum material cadastrado. Vá em “Cadastrar materiais” para adicionar o primeiro.'}</td></tr>`;
+}
+
+function renderSelects(){
+  const opts=db.materiais.slice().sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR')).map(m=>`<option value="${m.id}">${esc(m.cod)} · ${esc(m.nome)}</option>`).join('');
+  const cur=$('mMat').value, curH=$('fHistMat').value;
+  $('mMat').innerHTML=opts||'<option value="">Cadastre um material primeiro</option>';
+  if(cur&&matById(cur))$('mMat').value=cur;
+  $('fHistMat').innerHTML='<option value="">Todos os materiais</option>'+opts;
+  if(curH&&matById(curH))$('fHistMat').value=curH;
+  $('catList').innerHTML=[...new Set(db.materiais.map(m=>m.cat).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('');
+  renderSaldoHint();
+}
+
+function renderSaldoHint(){
+  const m=matById($('mMat').value);
+  $('mSaldo').textContent=m?`Em estoque agora: ${fmtN(saldo(m.id))} ${m.un}${m.local?' · '+m.local:''}`:'';
+}
+
+function renderHist(){
+  const fm=$('fHistMat').value, ft=$('fHistTipo').value, fr=$('fHistResp').value.trim().toLowerCase();
+  const rows=db.movs.filter(x=>(!fm||x.mat===fm)&&(!ft||x.tipo===ft)&&(!fr||x.resp.toLowerCase().includes(fr)))
+    .sort((a,b)=>b.data.localeCompare(a.data));
+  $('histBody').innerHTML=rows.length?rows.map(x=>{const m=matById(x.mat);const d=new Date(x.data);
+    return `<tr><td class="num" style="text-align:left">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</td>
+    <td><span class="pill ${x.tipo}">${x.tipo==='in'?'Entrada':'Saída'}</span></td><td>${m?esc(m.nome):'<span class="note">(removido)</span>'}</td>
+    <td class="num">${x.tipo==='in'?'+':'−'}${fmtN(x.qtd)} ${m?esc(m.un):''}</td><td>${esc(x.resp)}</td><td>${esc(x.obs)||'—'}</td>
+    <td><button class="btn ghost small" data-undo="${x.id}" title="Apagar este registro">Apagar</button></td></tr>`}).join('')
+    :'<tr><td colspan="7" class="empty">Nenhuma movimentação encontrada.</td></tr>';
+}
+
+function renderAll(){renderStats();renderEstoque();renderSelects();renderHist()}
+
+function setTab(t){
+  document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  ['estoque','movimentar','historico','materiais'].forEach(k=>$('tab-'+k).hidden=k!==t);
+}
+document.querySelector('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b)setTab(b.dataset.tab)});
+
+function setTipo(t){tipo=t;$('tipoIn').setAttribute('aria-pressed',t==='in');$('tipoOut').setAttribute('aria-pressed',t==='out');$('mSubmit').textContent=t==='in'?'Registrar entrada':'Registrar saída';$('mMsg').textContent=''}
+$('tipoIn').onclick=()=>setTipo('in');$('tipoOut').onclick=()=>setTipo('out');
+$('mMat').onchange=renderSaldoHint;
+
+function msg(el,text,ok){el.textContent=text;el.className='msg '+(ok?'ok':'err')}
+
+$('formMov').addEventListener('submit',e=>{
+  e.preventDefault();
+  const mat=$('mMat').value, qtd=parseFloat($('mQtd').value), data=$('mData').value, resp=$('mResp').value.trim(), obs=$('mObs').value.trim();
+  const m=matById(mat);
+  if(!m)return msg($('mMsg'),'Escolha um material. Se a lista estiver vazia, cadastre um material antes.');
+  if(!(qtd>0))return msg($('mMsg'),'Informe uma quantidade maior que zero.');
+  if(!data)return msg($('mMsg'),'Informe a data e a hora.');
+  if(!resp)return msg($('mMsg'),'Informe quem é o responsável.');
+  if(tipo==='out'&&qtd>saldo(mat))return msg($('mMsg'),`Saída maior que o estoque. Disponível: ${fmtN(saldo(mat))} ${m.un}.`);
+  db.movs.push({id:uid(),mat,tipo,qtd,data,resp,obs});save();
+  msg($('mMsg'),`${tipo==='in'?'Entrada':'Saída'} registrada: ${fmtN(qtd)} ${m.un} de ${m.nome}.`,true);
+  $('mQtd').value='';$('mObs').value='';$('mData').value=nowLocal();
+  renderAll();
+});
+
+function resetMatForm(){editId=null;$('formMat').reset();$('cMin').value=0;$('cIni').value=0;$('matTitle').textContent='Novo material';$('cSubmit').textContent='Cadastrar material';$('cCancel').hidden=true;$('cIniWrap').hidden=false}
+$('cCancel').onclick=()=>{resetMatForm();$('cMsg').textContent=''};
+
+$('formMat').addEventListener('submit',e=>{
+  e.preventDefault();
+  const nome=$('cNome').value.trim(), cat=$('cCat').value.trim(), un=$('cUn').value, local=$('cLocal').value.trim();
+  const min=parseFloat($('cMin').value)||0, ini=parseFloat($('cIni').value)||0;
+  if(!nome)return msg($('cMsg'),'Dê um nome ao material.');
+  if(min<0||ini<0)return msg($('cMsg'),'Use números positivos no mínimo e na quantidade inicial.');
+  if(editId){Object.assign(matById(editId),{nome,cat,un,local,min});save();msg($('cMsg'),`${nome} atualizado.`,true);resetMatForm();renderAll();return}
+  if(db.materiais.some(m=>m.nome.toLowerCase()===nome.toLowerCase()))return msg($('cMsg'),'Já existe um material com esse nome.');
+  db.seq++;const m={id:uid(),cod:'MAT-'+String(db.seq).padStart(3,'0'),nome,cat,un,local,min};db.materiais.push(m);
+  if(ini>0)db.movs.push({id:uid(),mat:m.id,tipo:'in',qtd:ini,data:nowLocal(),resp:'Cadastro',obs:'Quantidade inicial'});
+  save();msg($('cMsg'),`${nome} cadastrado como ${m.cod}.`,true);resetMatForm();renderAll();
+});
+
+$('estBody').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.edit){const m=matById(b.dataset.edit);editId=m.id;$('cNome').value=m.nome;$('cCat').value=m.cat;$('cUn').value=m.un;$('cLocal').value=m.local;$('cMin').value=m.min;
+    $('cIniWrap').hidden=true;$('matTitle').textContent='Editar '+m.cod;$('cSubmit').textContent='Salvar alterações';$('cCancel').hidden=false;$('cMsg').textContent='';setTab('materiais');$('cNome').focus()}
+  else if(b.dataset.del){pendingDel=b.dataset.del;renderEstoque()}
+  else if('delNo' in b.dataset){pendingDel=null;renderEstoque()}
+  else if(b.dataset.delOk){const id=b.dataset.delOk;db.materiais=db.materiais.filter(m=>m.id!==id);db.movs=db.movs.filter(x=>x.mat!==id);pendingDel=null;save();renderAll()}
+});
+
+let pendingUndo=null;
+$('histBody').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-undo]');if(!b)return;
+  if(pendingUndo===b.dataset.undo){db.movs=db.movs.filter(x=>x.id!==pendingUndo);pendingUndo=null;save();renderAll()}
+  else{pendingUndo=b.dataset.undo;b.textContent='Confirmar?';b.classList.add('danger')}
+});
+
+['fEstBusca','fEstStatus'].forEach(id=>$(id).addEventListener('input',renderEstoque));
+['fHistMat','fHistTipo','fHistResp'].forEach(id=>$(id).addEventListener('input',renderHist));
+
+$('btnClearDemo').onclick=()=>{db={materiais:[],movs:[],seq:0,demo:false};save();renderAll();setTab('materiais')};
+
+$('btnBackup').onclick=async()=>{
+  const txt=JSON.stringify(db);
+  try{await navigator.clipboard.writeText(txt);$('btnBackup').textContent='Backup copiado'}catch(e){$('btnBackup').textContent='Não foi possível copiar'}
+  setTimeout(()=>$('btnBackup').textContent='Copiar backup',2500);
+};
+$('fileRestore').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.materiais)||!Array.isArray(d.movs))throw 0;db=d;save();renderAll()}catch(_){$('btnBackup').textContent='Arquivo de backup inválido';setTimeout(()=>$('btnBackup').textContent='Copiar backup',3000)}};
+  r.readAsText(f);e.target.value='';
+};
+
+if(!load())seed();
+$('mData').value=nowLocal();
+renderAll();
+</script>
+</body>
+</html>
