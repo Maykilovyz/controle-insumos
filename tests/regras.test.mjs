@@ -50,6 +50,8 @@ await t('editor não altera registro', assertFails(setDoc(doc(as('ed@gmail.com')
 await t('editor apaga o próprio registro', assertSucceeds(deleteDoc(doc(as('ed@gmail.com'), 'movs/v6'))));
 await t('editor não exclui material', assertFails(deleteDoc(doc(as('ed@gmail.com'), 'materiais/m1'))));
 await t('editor edita material', assertSucceeds(setDoc(doc(as('ed@gmail.com'), 'materiais/m1'), { ...mat, local: 'Armário 3' })));
+await t('editor marca material de consumo', assertSucceeds(setDoc(doc(as('ed@gmail.com'), 'materiais/m1'), { ...mat, local: 'Armário 3', consumo: true })));
+await t('editor registra devolução', assertSucceeds(setDoc(doc(as('ed@gmail.com'), 'movs/d1'), { ...mov, tipo: 'in', dev: true }).then(() => deleteDoc(doc(as('ed@gmail.com'), 'movs/d1')))));
 await t('admin exclui material', assertSucceeds(deleteDoc(doc(as('adm@gmail.com'), 'materiais/m2'))));
 await t('admin apaga registro antigo sem autor', assertSucceeds(setDoc(doc(as('adm@gmail.com'), 'movs/old'), (({ por, ...r }) => r)(mov)).then(() => deleteDoc(doc(as('adm@gmail.com'), 'movs/old')))));
 await setDoc(doc(as('adm@gmail.com'), 'movs/v6'), mov);

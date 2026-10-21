@@ -168,6 +168,34 @@ async function limparBanco() {
   t(await ate(async () => (await rest('movs')).length === antes + 2), 'os dois registros estão no banco');
   t(await ate(async () => { const a = await DB(A.pg), bb = await DB(B.pg); return ['Simultâneo A', 'Simultâneo B'].every(r => a.movs.some(v => v.resp === r) && bb.movs.some(v => v.resp === r)); }), 'as duas telas mostram os dois');
 
+  console.log('# 9b. Faltando e devolução em tempo real');
+  const linhaMotor = async pg => (await pg.textContent('#estGroup .row:has-text("Motor DC 6V")')).replace(/ /g, ' ');
+  await A.pg.click('[role=tab]#tab-estoque'); await idle(A.pg);
+  await A.pg.click('#fEstFalta'); await idle(A.pg);
+  t(await ate(async () => (await linhaMotor(A.pg)).includes('5 un com 3 pessoas')), 'dono vê em Faltando: 5 un com 3 pessoas', await linhaMotor(A.pg).catch(() => ''));
+  t((await A.pg.textContent('#rTipoDevN')) === '3', 'contador de Devolução = 3', await A.pg.textContent('#rTipoDevN'));
+  await B.pg.click('[role=tab]#tab-registrar'); await idle(B.pg);
+  await B.pg.click('#rTipoDev'); await idle(B.pg);
+  t((await B.pg.$$('#rDevList .dev-btn')).length === 3, 'editor vê as 3 pessoas com o motor');
+  await B.pg.click('#rDevList .dev-row:has-text("Turma 7A") .dev-btn'); await idle(B.pg);
+  t((await B.pg.inputValue('#alertInput')) === '3', 'pergunta quanto voltou, começando em 3');
+  await B.pg.keyboard.press('Enter'); await idle(B.pg);
+  t(await ate(async () => (await rest('movs')).some(d => d.f.resp.stringValue === 'Turma 7A' && d.f.dev?.booleanValue === true && d.f.qtd.integerValue === '3' && d.f.por.stringValue === ED)), 'devolução gravada com dev e autor');
+  t(await ate(async () => (await linhaMotor(A.pg)).includes('2 un com 2 pessoas')), 'dono vê a devolução na hora', await linhaMotor(A.pg).catch(() => ''));
+  t(await ate(async () => (await A.pg.textContent('#rTipoDevN')) === '2'), 'contador de Devolução cai para 2');
+  t((await B.pg.$$('#rDevList .dev-btn')).length === 2, 'lista do editor fica com 2');
+  // editor marca o material como de consumo (pode editar material); dono vê sair de Faltando; desfazer volta
+  await B.pg.click('[role=tab]#tab-estoque'); await idle(B.pg);
+  await B.pg.click('#estGroup .row:has-text("Motor DC 6V")'); await idle(B.pg);
+  await B.pg.click('#smConsumo'); await idle(B.pg);
+  t(await ate(async () => (await rest('materiais')).some(d => d.f.nome.stringValue === 'Motor DC 6V' && d.f.consumo?.booleanValue === true)), 'material de consumo salvo no banco');
+  t(await ate(async () => (await A.pg.textContent('#estGroup')).includes('Nada faltando')), 'dono: Faltando fica vazio', await A.pg.textContent('#estGroup'));
+  await B.pg.click('#toastAcao'); await idle(B.pg);
+  t(await ate(async () => (await rest('materiais')).some(d => d.f.nome.stringValue === 'Motor DC 6V' && !d.f.consumo?.booleanValue)), 'desfazer tira a marca no banco');
+  t(await ate(async () => (await linhaMotor(A.pg)).includes('2 un com 2 pessoas')), 'dono vê o motor de volta em Faltando');
+  if (await B.pg.$eval('#sheetMat', x => x.open)) { await B.pg.click('#smFechar'); await idle(B.pg); }
+  await A.pg.click('#fEstTodos'); await idle(A.pg);
+
   console.log('# 10. Liberar para qualquer conta Google');
   const C = await abrir('estranho');
   await ate(async () => (await gate(C.pg)).msg.includes('Entre'));

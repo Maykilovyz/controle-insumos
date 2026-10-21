@@ -211,7 +211,7 @@ main > .banner{margin-top:var(--s4)}
 @media (hover:hover){ .sum-btn:hover .sum-l{text-decoration:underline;text-underline-offset:2px} }
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
 .sum-btn .dot{margin-right:var(--s1);vertical-align:1px}
-.dot.warn{color:var(--warn)} .dot.danger{color:var(--danger)}
+.dot.warn{color:var(--warn)} .dot.danger{color:var(--danger)} .dot.info{color:var(--accent)}
 
 /* Faixas: conteúdo, não vidro */
 .banner{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);padding:10px var(--s4);border-radius:12px;font-size:var(--fs-sub);line-height:var(--lh-sub);color:var(--label)}
@@ -240,7 +240,7 @@ main > .banner{margin-top:var(--s4)}
 .search .clear svg{width:16px;height:16px;fill:currentColor;stroke:none}
 #fEstBuscaWrap{flex:0 1 320px}
 #fHistBuscaWrap{flex:0 1 280px}
-#fEstFiltro{width:auto;min-width:292px;flex:none}
+#fEstFiltro{width:auto;min-width:216px;flex:none}
 #fEstFiltro > button{padding:0 var(--s3)}
 #fHistTipo{width:244px;flex:none}
 
@@ -302,6 +302,10 @@ main > .banner{margin-top:var(--s4)}
 .sit.danger,.sit-t.danger{color:var(--danger)}
 .sit.neutral,.sit-t.neutral{color:var(--label-2)}
 .sit-t{font-weight:500}
+.sit.info,.sit-t.info{color:var(--accent)}
+.sit-tx{overflow:hidden;text-overflow:ellipsis}
+.est .c-sit{overflow:hidden}
+.est .c-sit .sit{max-width:100%}
 
 /* Cabeçalho de colunas e linhas de seção */
 .colhead{position:sticky;top:var(--top);z-index:10;display:grid;align-items:center;gap:var(--s3);height:32px;padding:0 var(--s4);border-bottom:var(--hairline) solid var(--separator);background:var(--chrome-surface);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
@@ -404,6 +408,11 @@ main > .banner{margin-top:var(--s4)}
 @media (hover:hover){ .chip:hover{background:var(--fill-2)} }
 .form-actions{display:flex;flex-direction:row-reverse;justify-content:flex-start;gap:var(--s2);margin-top:var(--s4)}
 .seg-tipo{margin-bottom:var(--s4)}
+/* Devolução: quem está com o quê, com o botão na própria linha */
+.dev-row{grid-template-columns:minmax(0,1fr) auto auto}
+.dev-q{white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--label-2)}
+.dev-row .btn{height:30px;padding:0 var(--s3)}
+.dev-row .q-m{display:none}
 
 /* Registrar */
 .reg-layout{margin-top:var(--s4)}
@@ -455,7 +464,7 @@ dialog.is-open::backdrop{opacity:1}
 .strip > div + div::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:var(--hairline);background:var(--separator)}
 .strip .cap{font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--label-2)}
 .strip .val{font-size:var(--fs-head);line-height:var(--lh-head);font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.strip .val.warn{color:var(--warn)} .strip .val.danger{color:var(--danger)}
+.strip .val.warn{color:var(--warn)} .strip .val.danger{color:var(--danger)} .strip .val.info{color:var(--accent)}
 #smTipo{--n:2;margin-top:var(--s6)}
 #formSheetReg{margin-top:var(--s3)}
 #smSubmit{margin-top:var(--s4)}
@@ -609,6 +618,11 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   .quando-row{grid-template-columns:minmax(0,1fr) auto}
   .empty-line > span:first-child{flex:1 1 100%}
   .quando-row > label{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* devolução no celular: a quantidade desce para a linha de baixo e o nome ganha duas linhas */
+  .dev-row{grid-template-columns:minmax(0,1fr) auto}
+  .dev-row .dev-q{display:none}
+  .dev-row .q-m{display:inline}
+  .dev-row .nm{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 }
 @media (max-width:359.98px){ .seg-count{display:none} }
 @media (pointer:coarse){
@@ -635,6 +649,8 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   .search input:focus-visible,.popup select:focus-visible{box-shadow:none}
   .search:has(input:focus-visible),.popup:has(select:focus-visible){border-radius:var(--r-ctl);box-shadow:0 0 0 2px var(--focus-ring)}
   .form-actions .btn:not(.btn-lg){height:44px}
+  .dev-row .btn{position:relative;height:36px}
+  .dev-row .btn::after{content:"";position:absolute;left:0;right:0;top:calc(50% - 22px);bottom:calc(50% - 22px)}
 }
 @media (forced-colors:active){
   .btn,.btn-bar,.btn-icon,.chip,.stepper,.seg,.search input,.popup select,.alert-field{border:1px solid ButtonText}
@@ -752,11 +768,10 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
         <input type="search" id="fEstBusca" placeholder="Buscar" aria-label="Buscar por nome, código, categoria ou local" title="Buscar (/)" enterkeyhint="search" autocomplete="off" spellcheck="false">
         <button type="button" class="clear" id="fEstBuscaLimpar" aria-label="Limpar busca" hidden><svg class="ico" aria-hidden="true"><use href="#i-xmark-fill"></use></svg></button>
       </div>
-      <div class="seg tall" role="radiogroup" aria-label="Filtrar por situação" id="fEstFiltro" style="--i:0;--n:3">
+      <div class="seg tall" role="radiogroup" aria-label="Filtrar por situação" id="fEstFiltro" style="--i:0;--n:2">
         <span class="seg-thumb" aria-hidden="true"></span>
         <button type="button" role="radio" id="fEstTodos" data-v="todos" aria-checked="true" tabindex="0"><span>Todos</span></button>
-        <button type="button" role="radio" id="fEstRepor" data-v="repor" aria-checked="false" tabindex="-1"><span>Para repor</span><span class="seg-count tnum" id="fEstReporN"></span></button>
-        <button type="button" role="radio" id="fEstZerados" data-v="zerados" aria-checked="false" tabindex="-1"><span>Zerados</span></button>
+        <button type="button" role="radio" id="fEstFalta" data-v="falta" aria-checked="false" tabindex="-1"><span>Faltando</span><span class="seg-count tnum" id="fEstFaltaN"></span></button>
       </div>
     </div>
     <div class="group est mode-wide" id="estGroup"></div>
@@ -769,11 +784,17 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
     <div class="reg-layout">
       <div class="reg-main">
         <form id="formReg" novalidate>
-          <div class="seg seg-tipo tall" role="radiogroup" aria-label="Tipo de registro" id="rTipo" style="--i:0;--n:2">
+          <div class="seg seg-tipo tall" role="radiogroup" aria-label="Tipo de registro" id="rTipo" style="--i:0;--n:3">
             <span class="seg-thumb" aria-hidden="true"></span>
             <button type="button" role="radio" id="rTipoSaida" data-v="out" aria-checked="true" tabindex="0"><span>Saída</span></button>
+            <button type="button" role="radio" id="rTipoDev" data-v="dev" aria-checked="false" tabindex="-1"><span>Devolução</span><span class="seg-count tnum" id="rTipoDevN"></span></button>
             <button type="button" role="radio" id="rTipoEntrada" data-v="in" aria-checked="false" tabindex="-1"><span>Entrada</span></button>
           </div>
+          <div id="rDev" hidden>
+            <div class="group" id="rDevList"></div>
+            <p class="group-foot" id="rDevFoot"></p>
+          </div>
+          <div id="rCampos">
           <div class="group" id="rGroup">
             <div class="field" id="rMatField">
               <label for="rMat">Material</label>
@@ -809,6 +830,7 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
           <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-md btn-lg" id="rSubmit">Registrar saída</button>
             <button type="button" class="btn btn-secondary btn-md" id="rLimpar">Limpar</button>
+          </div>
           </div>
         </form>
         <div class="group" id="regEmpty" hidden>
@@ -870,9 +892,14 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   <div class="sheet-body" id="smDetail">
     <p class="sheet-meta" id="smMeta"></p>
     <div class="group strip" id="smStrip">
-      <div><span class="cap">Em estoque</span><span class="val" id="smSaldo"></span></div>
+      <div><span class="cap">Na sala</span><span class="val" id="smSaldo"></span></div>
       <div><span class="cap">Mínimo</span><span class="val" id="smMin"></span></div>
       <div><span class="cap">Situação</span><span class="val" id="smSit"></span></div>
+    </div>
+    <div id="smForaBox" hidden>
+      <h3 class="section-label">Com quem está</h3>
+      <div class="group" id="smFora"></div>
+      <p class="group-foot">Não volta para a sala? <button type="button" class="link-btn" id="smConsumo">Marcar como material de consumo</button></p>
     </div>
     <div class="seg tall" role="radiogroup" aria-label="Tipo de registro" id="smTipo" style="--i:0;--n:2">
       <span class="seg-thumb" aria-hidden="true"></span>
@@ -924,8 +951,10 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
       <p class="group-foot err" id="eErrNome" hidden></p>
       <div class="group wide-labels" style="margin-top:var(--s6)">
         <div class="field"><label for="eMin">Estoque mínimo</label><span class="qty-wrap"><input id="eMin" class="qty-input" type="text" inputmode="decimal" placeholder="0" autocomplete="off" enterkeyhint="done" size="3"><span class="suffix" id="eMinSuf">un</span></span></div>
+        <label class="field switch-row" for="eConsumo"><span class="flabel">Material de consumo</span><input type="checkbox" class="switch" role="switch" id="eConsumo"></label>
       </div>
       <p class="group-foot err" id="eErrMin" hidden></p>
+      <p class="group-foot">Ligue para o que se gasta, como pilha, fita e papel: a saída não espera devolução.</p>
       <p class="group-foot" id="eFoot"></p>
     </form>
   </div>
@@ -949,9 +978,11 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
     <div class="group wide-labels" style="margin-top:var(--s6)">
       <div class="field"><label for="cMin">Estoque mínimo</label><span class="qty-wrap"><input id="cMin" class="qty-input" type="text" inputmode="decimal" placeholder="0" autocomplete="off" enterkeyhint="next" size="3"><span class="suffix" id="cMinSuf">un</span></span></div>
       <div class="field"><label for="cIni">Quantidade inicial</label><span class="qty-wrap"><input id="cIni" class="qty-input" type="text" inputmode="decimal" placeholder="0" autocomplete="off" enterkeyhint="done" size="3"><span class="suffix" id="cIniSuf">un</span></span></div>
+      <label class="field switch-row" for="cConsumo"><span class="flabel">Material de consumo</span><input type="checkbox" class="switch" role="switch" id="cConsumo"></label>
     </div>
     <p class="group-foot err" id="cErrMin" hidden></p>
     <p class="group-foot err" id="cErrIni" hidden></p>
+    <p class="group-foot">Ligue para o que se gasta, como pilha, fita e papel: a saída não espera devolução.</p>
     <p class="group-foot" id="cFoot"></p>
     <button type="button" class="btn-text" id="cOutro">Cadastrar e adicionar outro</button>
   </form>
@@ -1203,13 +1234,14 @@ const whenNumeric = s => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}, $
 /* =====================================================================
    Dados: semente, normalização, carga e gravação
    ===================================================================== */
+/* [nome, categoria, unidade, local, mínimo, material de consumo] */
 const SEED_MATS = [
-  ['Arduino Uno R3', 'Eletrônica', 'un', 'Armário 1, prateleira A', 5],
-  ['Resistor 220Ω', 'Eletrônica', 'un', 'Gaveteiro 3', 50],
-  ['Jumper macho-macho', 'Eletrônica', 'pct', 'Gaveteiro 2', 3],
-  ['Sensor ultrassônico HC-SR04', 'Sensores', 'un', 'Armário 1, prateleira B', 4],
-  ['Papel A4', 'Papelaria', 'folha', 'Armário 2', 200],
-  ['Fita isolante', 'Ferramentas', 'rolo', 'Bancada', 2]
+  ['Arduino Uno R3', 'Eletrônica', 'un', 'Armário 1, prateleira A', 5, false],
+  ['Resistor 220Ω', 'Eletrônica', 'un', 'Gaveteiro 3', 50, true],
+  ['Jumper macho-macho', 'Eletrônica', 'pct', 'Gaveteiro 2', 3, false],
+  ['Sensor ultrassônico HC-SR04', 'Sensores', 'un', 'Armário 1, prateleira B', 4, false],
+  ['Papel A4', 'Papelaria', 'folha', 'Armário 2', 200, true],
+  ['Fita isolante', 'Ferramentas', 'rolo', 'Bancada', 2, true]
 ];
 /* [material, tipo, qtd, dias atrás, hora, responsável, observação] */
 const SEED_MOVS = [
@@ -1227,13 +1259,14 @@ const SEED_MOVS = [
 ];
 const DEMO_PAIRS = SEED_MATS.map(([nome], i) => nome + '|MAT-' + String(i + 1).padStart(3, '0'));
 const SEED_SIGS = new Set(SEED_MOVS.map(([i, t, q, , , r, o]) => [SEED_MATS[i][0], t, q, r, o].join('|')));
+const SEED_CONSUMO = new Set(SEED_MATS.filter(x => x[5]).map(x => x[0]));
 
 function seedDb() {
   const at = (days, h) => { const x = new Date(); x.setDate(x.getDate() - days); x.setHours(h, 0, 0, 0); return stamp(x); };
   const d = { materiais: [], movs: [], seq: 0, demo: true };
-  for (const [nome, cat, un, local, min] of SEED_MATS) {
+  for (const [nome, cat, un, local, min, consumo] of SEED_MATS) {
     d.seq++;
-    d.materiais.push({ id: uid(), cod: 'MAT-' + String(d.seq).padStart(3, '0'), nome, cat, un, local, min, exemplo: true });
+    d.materiais.push({ id: uid(), cod: 'MAT-' + String(d.seq).padStart(3, '0'), nome, cat, un, local, min, consumo, exemplo: true });
   }
   for (const [i, tipo, qtd, days, h, resp, obs] of SEED_MOVS) {
     d.movs.push({ id: uid(), mat: d.materiais[i].id, tipo, qtd, data: at(days, h), resp, obs, exemplo: true });
@@ -1355,7 +1388,8 @@ function loadPrefs() {
     const p = JSON.parse(localStorage.getItem(PKEY) || 'null');
     if (!p || typeof p !== 'object') return;
     if (['estoque', 'registrar', 'historico'].includes(p.aba)) prefs.aba = p.aba;
-    if (['todos', 'repor', 'zerados'].includes(p.filtroEst)) prefs.filtroEst = p.filtroEst;
+    if (p.filtroEst === 'todos') prefs.filtroEst = 'todos';
+    else if (['falta', 'repor', 'zerados'].includes(p.filtroEst)) prefs.filtroEst = 'falta';
     if (p.tipo === 'in' || p.tipo === 'out') prefs.tipo = p.tipo;
     if (typeof p.resp === 'string') prefs.resp = p.resp.slice(0, 120);
     if (Array.isArray(p.resps)) prefs.resps = p.resps.filter(x => typeof x === 'string' && x.trim()).slice(0, 5);
@@ -1388,27 +1422,94 @@ function caches() {
   sortedMovs = db.movs.slice().sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : idx.get(b) - idx.get(a)));
   foldMat = new Map();
   foldMov = new WeakMap();
+  calcFora();
   cacheVer = ver;
 }
 const matById = id => { caches(); return matMap.get(id); };
 const saldoOf = id => { caches(); return saldoMap.get(id) || 0; };
-function foldOfMat(m) { let f = foldMat.get(m.id); if (f === undefined) { f = fold(`${m.nome} ${m.cod} ${m.cat} ${m.local}`); foldMat.set(m.id, f); } return f; }
-function foldOfMov(v) { let f = foldMov.get(v); if (f === undefined) { const m = matMap.get(v.mat); f = fold(`${v.resp} ${v.obs} ${m ? m.nome : ''}`); foldMov.set(v, f); } return f; }
 
-/* Situação: regra única para linha, filtro e resumo */
+/* Empréstimos. Toda saída de material que volta para a sala fica "com" quem pegou
+   até a devolução. Devolução é a entrada da mesma pessoa (marcada com dev:true pelo
+   botão Devolver, ou uma entrada comum registrada depois da saída). Material de
+   consumo e ajustes de contagem não geram empréstimo. */
+const ehConsumo = m => m.consumo === true || (m.consumo === undefined && isDemoMat(m) && SEED_CONSUMO.has(m.nome));
+const ehAjuste = v => v.ajuste === true || (v.obs === 'Ajuste de inventário' && v.dev !== true);
+const chavePessoa = s => fold(s).replace(/\s+/g, ' ').trim();
+let foraMap = new Map(), foraLista = [];
+function calcFora() {
+  const pessoas = new Map();
+  const tirar = (p, q) => {
+    p.qtd = round3(Math.max(0, p.qtd - q));
+    while (q > 1e-9 && p.lotes.length) { const l = p.lotes[0], t = Math.min(l.qtd, q); l.qtd = round3(l.qtd - t); q = round3(q - t); if (l.qtd <= 1e-9) p.lotes.shift(); }
+  };
+  /* do mais antigo para o mais novo: uma entrada comum só conta como devolução se veio depois da saída */
+  for (let i = sortedMovs.length - 1; i >= 0; i--) {
+    const v = sortedMovs[i], m = matMap.get(v.mat);
+    if (!m || ehConsumo(m) || ehAjuste(v)) continue;
+    const k = v.mat + '\u0000' + chavePessoa(v.resp);
+    let p = pessoas.get(k);
+    if (v.tipo === 'out') {
+      if (!p) pessoas.set(k, p = { mat: v.mat, k: chavePessoa(v.resp), nome: '', qtd: 0, lotes: [], dev: 0 });
+      p.nome = v.resp.trim();
+      p.qtd = round3(p.qtd + v.qtd);
+      p.lotes.push({ qtd: v.qtd, data: v.data });
+    } else if (v.dev === true) {
+      /* devolução explícita vale mesmo com data anterior à saída */
+      if (!p) pessoas.set(k, p = { mat: v.mat, k: chavePessoa(v.resp), nome: v.resp.trim(), qtd: 0, lotes: [], dev: 0 });
+      p.dev = round3(p.dev + v.qtd);
+    } else if (p && p.qtd > 0) tirar(p, v.qtd);
+  }
+  foraMap = new Map();
+  foraLista = [];
+  for (const p of pessoas.values()) {
+    if (p.dev) tirar(p, p.dev);
+    if (p.qtd <= 1e-9 || !p.lotes.length) continue;
+    const h = { mat: p.mat, k: p.k, nome: p.nome, qtd: p.qtd, desde: p.lotes[0].data };
+    let arr = foraMap.get(p.mat);
+    if (!arr) foraMap.set(p.mat, arr = []);
+    arr.push(h);
+    foraLista.push(h);
+  }
+  const porNome = (a, b) => COLL.compare(a.nome, b.nome) || (a.desde < b.desde ? -1 : a.desde > b.desde ? 1 : 0);
+  for (const arr of foraMap.values()) arr.sort(porNome);
+  foraLista.sort((a, b) => porNome(a, b) || COLL.compare(matMap.get(a.mat).nome, matMap.get(b.mat).nome));
+}
+const foraDe = id => { caches(); return foraMap.get(id) || []; };
+const foraQtd = id => round3(foraDe(id).reduce((t, h) => t + h.qtd, 0));
+const comQuem = (id, resp) => { const k = chavePessoa(resp); return k ? foraDe(id).find(h => h.k === k) || null : null; };
+function desdeTexto(s) {
+  const day = s.slice(0, 10);
+  if (day === clock.today) return `hoje, ${s.slice(11, 16)}`;
+  if (day === clock.yest) return `ontem, ${s.slice(11, 16)}`;
+  const diff = Math.round((dateOf(clock.today) - dateOf(day)) / 864e5);
+  return diff > 1 ? `há ${NF.format(diff)} dias` : `em ${day.slice(8, 10)}/${day.slice(5, 7)}`;
+}
+function foldOfMat(m) { let f = foldMat.get(m.id); if (f === undefined) { f = fold(`${m.nome} ${m.cod} ${m.cat} ${m.local}`); foldMat.set(m.id, f); } return f; }
+function foldOfMov(v) { let f = foldMov.get(v); if (f === undefined) { const m = matMap.get(v.mat); f = fold(`${v.resp} ${v.obs} ${m ? m.nome : ''}${v.dev === true ? ' devolução' : ''}`); foldMov.set(v, f); } return f; }
+
+/* Situação: regra única para linha, filtro e resumo.
+   Faltando = alguém está com o material, ou o que há na sala acabou ou está abaixo do mínimo. */
 const SIT = {
-  neg:   { t: 'Saldo negativo',   c: 'danger',  dot: true,  rep: true,  zer: true,  ord: 0 },
-  zero:  { t: 'Zerado',           c: 'danger',  dot: true,  rep: true,  zer: true,  ord: 1 },
-  low:   { t: 'Abaixo do mínimo', c: 'warn',    dot: true,  rep: true,  zer: false, ord: 2 },
-  vazio: { t: 'Zerado',           c: 'neutral', dot: false, rep: false, zer: true,  ord: 3 },
-  ok:    { t: '',                 c: '',        dot: false, rep: false, zer: false, ord: 4 }
+  neg:  { t: 'Saldo negativo',   c: 'danger', falta: true,  grupo: 'repor', ord: 0 },
+  fora: { t: 'Com alguém',       c: 'info',   falta: true,  grupo: 'fora',  ord: 1 },
+  zero: { t: 'Zerado',           c: 'danger', falta: true,  grupo: 'repor', ord: 2 },
+  low:  { t: 'Abaixo do mínimo', c: 'warn',   falta: true,  grupo: 'repor', ord: 3 },
+  ok:   { t: '',                 c: '',       falta: false, grupo: 'ok',    ord: 4 }
 };
+const GRUPOS = [['fora', 'Com alguém'], ['repor', 'Para repor'], ['ok', 'Em dia']];
 function situacao(m) {
   const s = saldoOf(m.id), min = m.min || 0;
   if (s < 0) return 'neg';
-  if (s === 0) return min > 0 ? 'zero' : 'vazio';
+  if (foraQtd(m.id) > 0) return 'fora';
+  if (s === 0) return 'zero';
   if (s < min) return 'low';
   return 'ok';
+}
+/* "2 un com Ana" ou "5 un com 3 pessoas" */
+function sitTexto(m, s) {
+  if (s !== 'fora') return SIT[s].t;
+  const f = foraDe(m.id), q = foraQtd(m.id);
+  return `${fmtQ(q, m.un)} com ${f.length === 1 ? f[0].nome || 'alguém' : `${f.length} pessoas`}`;
 }
 function todayCounts() {
   let ins = 0, outs = 0;
@@ -1521,19 +1622,26 @@ function renderGlobal() {
   caches();
   const n = db.materiais.length;
   const hoje = todayCounts();
-  let repor = 0, grave = false;
-  for (const m of db.materiais) { const s = situacao(m); if (SIT[s].rep) { repor++; if (s !== 'low') grave = true; } }
+  let falta = 0, cor = 'info';
+  for (const m of db.materiais) {
+    const s = situacao(m);
+    if (!SIT[s].falta) continue;
+    falta++;
+    if (s === 'neg' || s === 'zero') cor = 'danger';
+    else if (s === 'low' && cor !== 'danger') cor = 'warn';
+  }
   /* cada trecho não quebra por dentro; o separador desce junto com o trecho seguinte */
   $('estResumo').innerHTML = n
     ? `<span class="sum-part"><b>${NF.format(n)}</b> ${n === 1 ? 'material' : 'materiais'}</span> ` +
-      `<span class="sum-part">· ${repor
-        ? `<button type="button" class="sum-btn" id="btnResumoRepor" title="Mostrar o que precisa repor"><span class="dot ${grave ? 'danger' : 'warn'}" aria-hidden="true"></span><b>${NF.format(repor)}</b> <span class="sum-l">para repor</span></button>`
-        : 'nada para repor'}</span> ` +
+      `<span class="sum-part">· ${falta
+        ? `<button type="button" class="sum-btn" id="btnResumoFalta" title="Mostrar o que está faltando"><span class="dot ${cor}" aria-hidden="true"></span><b>${NF.format(falta)}</b> <span class="sum-l">faltando</span></button>`
+        : 'nada faltando'}</span> ` +
       `<span class="sum-part sum-hoje">· <button type="button" class="sum-btn" id="btnResumoHoje" title="Ver o histórico"><span class="sum-l">${hojeTexto(hoje, true)}</span></button></span>`
     : '';
   $('estResumo').hidden = !n;
   $('regSub').innerHTML = hojeTexto(hoje, true);
-  $('fEstReporN').textContent = repor ? NF.format(repor) : '';
+  $('fEstFaltaN').textContent = falta ? NF.format(falta) : '';
+  $('rTipoDevN').textContent = foraLista.length ? NF.format(foraLista.length) : '';
   const exemplos = hasExamples() && (!nuvem || isAdmin);
   $('demoBanner').hidden = !exemplos;
   $('miExemplos').hidden = $('miSepEx').hidden = !exemplos;
@@ -1588,16 +1696,16 @@ function renderPanel(t) {
 let estRows = [];
 const filtroEst = radiogroup($('fEstFiltro'), v => { prefs.filtroEst = v; savePrefs(); renderEstoque(); });
 function estAria(m, s) {
-  const parts = [m.nome, fmtQ(saldoOf(m.id), m.un)];
+  const parts = [m.nome, `${fmtQ(saldoOf(m.id), m.un)} na sala`];
   if (s === 'low') parts.push(`abaixo do mínimo de ${fmtNum(m.min)}`);
-  else if (s === 'zero' || s === 'vazio') parts.push('zerado');
-  else if (s === 'neg') parts.push('saldo negativo');
+  else if (s === 'fora') parts.push(sitTexto(m, s));
+  else if (s !== 'ok') parts.push(SIT[s].t.toLowerCase());
   if (m.local) parts.push(m.local);
   return parts.join(', ');
 }
-function sitHtml(s) {
-  const k = SIT[s];
-  return k.t ? `<span class="sit ${k.c}">${k.dot ? '<span class="dot" aria-hidden="true"></span>' : ''}${k.t}</span>` : '';
+function sitHtml(m, s) {
+  const k = SIT[s], t = sitTexto(m, s);
+  return t ? `<span class="sit ${k.c}" title="${esc(t)}"><span class="dot" aria-hidden="true"></span><span class="sit-tx">${esc(t)}</span></span>` : '';
 }
 const CHEV = '<svg class="ico chev" aria-hidden="true"><use href="#i-chevron-right"></use></svg>';
 function estRowHtml(m, s, i, md, secEnd) {
@@ -1605,8 +1713,8 @@ function estRowHtml(m, s, i, md, secEnd) {
   const cls = `row${secEnd ? ' sec-end' : ''}`;
   const aria = esc(estAria(m, s));
   if (md === 'mob') {
-    const k = SIT[s];
-    const sub = (k.t ? `<span class="sit-t ${k.c}">${k.t}</span> · ` : '') + esc([m.cod, m.local].filter(Boolean).join(' · '));
+    const k = SIT[s], t = sitTexto(m, s);
+    const sub = (t ? `<span class="sit-t ${k.c}">${esc(t)}</span> · ` : '') + esc([m.cod, m.local].filter(Boolean).join(' · '));
     return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${esc(m.nome)}</span><span class="meta">${sub}</span></span><span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>${CHEV}</button>`;
   }
   const meta = [m.cod, m.cat, md === 'mid' ? m.local : ''].filter(Boolean).join(' · ');
@@ -1614,7 +1722,7 @@ function estRowHtml(m, s, i, md, secEnd) {
     `<span class="c-name"><span class="nm" title="${esc(m.nome)}">${esc(m.nome)}</span><span class="meta">${esc(meta)}</span></span>` +
     (md === 'wide' ? `<span class="c-local${m.local ? '' : ' none'}"${m.local ? ` title="${esc(m.local)}"` : ''}>${m.local ? esc(m.local) : '—'}</span>` : '') +
     `<span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>` +
-    `<span class="c-min">${fmtNum(m.min)}</span><span class="c-sit">${sitHtml(s)}</span>${CHEV}</button>`;
+    `<span class="c-min">${fmtNum(m.min)}</span><span class="c-sit">${sitHtml(m, s)}</span>${CHEV}</button>`;
 }
 function renderEstoque() {
   dirty.estoque = false;
@@ -1631,26 +1739,24 @@ function renderEstoque() {
   let list = byName.map(m => ({ m, s: situacao(m) }));
   if (q) list = list.filter(x => foldOfMat(x.m).includes(q));
   const achados = list.length;
-  if (f === 'repor') list = list.filter(x => SIT[x.s].rep);
-  else if (f === 'zerados') list = list.filter(x => SIT[x.s].zer);
+  if (f === 'falta') list = list.filter(x => SIT[x.s].falta);
   if (!list.length) {
     estRows = [];
     g.innerHTML = !achados
       ? `<div class="empty-line"><span>Nada encontrado para “${esc(qRaw)}”.</span><span class="el-acts"><button type="button" class="btn-text" id="estLimparBusca">Limpar busca</button><button type="button" class="btn-text" id="estCadastrarBusca">Cadastrar “${esc(qRaw)}”</button></span></div>`
-      : `<div class="empty-line"><span>${f === 'repor' ? 'Nada para repor.' : 'Nenhum material zerado.'}</span><span class="el-acts"><button type="button" class="btn-text" id="estMostrarTodos">Mostrar todos</button></span></div>`;
+      : `<div class="empty-line"><span>Nada faltando: tudo está na sala.</span><span class="el-acts"><button type="button" class="btn-text" id="estMostrarTodos">Mostrar todos</button></span></div>`;
     return;
   }
   const bySev = (a, b) => SIT[a.s].ord - SIT[b.s].ord || COLL.compare(a.m.nome, b.m.nome);
-  let html = md === 'mob' ? '' : `<div class="colhead" aria-hidden="true"><span>Material</span>${md === 'wide' ? '<span>Local</span>' : ''}<span class="r">Em estoque</span><span class="r">Mínimo</span><span>Situação</span></div>`;
+  let html = md === 'mob' ? '' : `<div class="colhead" aria-hidden="true"><span>Material</span>${md === 'wide' ? '<span>Local</span>' : ''}<span class="r">Na sala</span><span class="r">Mínimo</span><span>Situação</span></div>`;
   estRows = [];
   const add = (arr, endLast) => arr.forEach((x, j) => { html += estRowHtml(x.m, x.s, estRows.length, md, endLast && j === arr.length - 1); estRows.push(x.m); });
-  if (f === 'todos') {
-    const rep = list.filter(x => SIT[x.s].rep).sort(bySev), dia = list.filter(x => !SIT[x.s].rep);
-    if (rep.length && dia.length) {
-      html += '<h3 class="section-row">Para repor</h3>'; add(rep, true);
-      html += '<h3 class="section-row">Em dia</h3>'; add(dia, false);
-    } else add(rep.length ? rep : dia, false);
-  } else add(list.sort(bySev), false);
+  /* seções na ordem: com alguém, para repor, em dia (títulos só quando há mais de uma) */
+  const secs = GRUPOS.map(([g, t]) => [t, list.filter(x => SIT[x.s].grupo === g)]).filter(([, a]) => a.length);
+  secs.forEach(([t, arr], i) => {
+    if (secs.length > 1) html += `<h3 class="section-row">${t}</h3>`;
+    add(arr.sort(bySev), i < secs.length - 1);
+  });
   g.innerHTML = html;
 }
 $('estGroup').addEventListener('click', e => {
@@ -1665,8 +1771,8 @@ $('estGroup').addEventListener('click', e => {
 $('estResumo').addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b) return;
-  if (b.id === 'btnResumoRepor') {
-    filtroEst.set('repor'); prefs.filtroEst = 'repor'; savePrefs(); renderEstoque();
+  if (b.id === 'btnResumoFalta') {
+    filtroEst.set('falta'); prefs.filtroEst = 'falta'; savePrefs(); renderEstoque();
     const g = $('estGroup'), y = g.getBoundingClientRect().top + window.scrollY - topPx() - 8;
     window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
   } else if (b.id === 'btnResumoHoje') setTab('historico', { top: true });
@@ -1709,7 +1815,7 @@ function searchChanged(id) { if (id === 'fEstBusca') renderEstoque(); else { his
 /* =====================================================================
    Formulário de registro (compartilhado: aba Registrar e folha do material)
    ===================================================================== */
-function regFoot(m, tipo, qtdStr) {
+function regFoot(m, tipo, qtdStr, resp) {
   if (!m) return { text: 'Escolha um material para ver o saldo.', err: false, block: false };
   const s = saldoOf(m.id), q = parseQtd(qtdStr), ok = Number.isFinite(q) && q > 0;
   if (tipo === 'out') {
@@ -1717,9 +1823,11 @@ function regFoot(m, tipo, qtdStr) {
       const txt = s > 0 ? `Só há ${fmtQ(s, m.un)} ${s < 2 ? 'disponível' : 'disponíveis'}.` : 'Não há saldo disponível.';
       return { text: txt, err: true, block: true };
     }
-    return { text: `Disponível: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s - q), m.un)}` : ''), err: false, block: false };
+    const volta = ehConsumo(m) ? '' : ' até a devolução';
+    return { text: `Disponível: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s - q), m.un)}${volta}` : ''), err: false, block: false };
   }
-  return { text: `Em estoque: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s + q), m.un)}` : ''), err: false, block: false };
+  const h = comQuem(m.id, resp);
+  return { text: `Na sala: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s + q), m.un)}` : '') + (h ? ` · conta como devolução de ${h.nome}` : ''), err: false, block: false };
 }
 function setFieldError(inputId, errId, msg) {
   const inp = $(inputId), err = $(errId), field = inp.closest('.field');
@@ -1782,11 +1890,16 @@ function dataFinal(prefix, touched) {
    Aba Registrar
    ===================================================================== */
 let regMatId = null, regTipo = 'out', regDataTouched = false, hojeRows = [], comboItems = [], comboActive = -1, comboQuiet = false, lastRegAt = 0;
-const rTipoRG = radiogroup($('rTipo'), v => { regTipo = v; prefs.tipo = v; savePrefs(); updateRegForm(); });
+const rTipoRG = radiogroup($('rTipo'), v => { regTipo = v; if (v !== 'dev') { prefs.tipo = v; savePrefs(); } updateRegForm(); });
 function updateRegForm() {
+  const dev = regTipo === 'dev';
+  $('rCampos').hidden = dev;
+  $('rDev').hidden = !dev;
+  if (dev) { comboClose(); renderRegDev(); return; }
   const m = regMatId ? matById(regMatId) : null;
   if (regMatId && !m) { regMatId = null; $('rMat').value = ''; }
-  const ft = regFoot(m, regTipo, $('rQtd').value);
+  $('rResp').placeholder = regTipo === 'in' ? 'Quem trouxe' : 'Quem pegou';
+  const ft = regFoot(m, regTipo, $('rQtd').value, $('rResp').value);
   const foot = $('rFoot');
   foot.textContent = ft.text;
   foot.classList.toggle('err', ft.err);
@@ -1826,8 +1939,8 @@ function comboRender() {
   caches();
   const q = fold($('rMat').value.trim());
   const opt = (m, i) => {
-    const s = situacao(m), k = SIT[s];
-    return `<li role="option" id="rOpt-${i}" data-i="${i}" aria-selected="false"><span class="o-name">${esc(m.nome)}</span><span class="o-sub">${esc(m.cod)} · ${esc(fmtQ(saldoOf(m.id), m.un))}${k.t ? ` · <span class="sit-t ${k.c}">${k.t}</span>` : ''}</span></li>`;
+    const s = situacao(m), k = SIT[s], t = sitTexto(m, s);
+    return `<li role="option" id="rOpt-${i}" data-i="${i}" aria-selected="false"><span class="o-name">${esc(m.nome)}</span><span class="o-sub">${esc(m.cod)} · ${esc(fmtQ(saldoOf(m.id), m.un))}${t ? ` · <span class="sit-t ${k.c}">${esc(t)}</span>` : ''}</span></li>`;
   };
   let html = '';
   comboItems = [];
@@ -1923,11 +2036,12 @@ $('rQtd').addEventListener('input', () => { sizeQty($('rQtd')); setFieldError('r
 $('rQtd').addEventListener('focus', () => $('rQtd').select());
 $('rQtdMenos').addEventListener('click', () => stepQty($('rQtd'), -1));
 $('rQtdMais').addEventListener('click', () => stepQty($('rQtd'), 1));
-$('rResp').addEventListener('input', () => setFieldError('rResp', 'rErrResp', ''));
+$('rResp').addEventListener('input', () => { setFieldError('rResp', 'rErrResp', ''); updateRegForm(); });
 $('rChips').addEventListener('click', e => {
   const c = e.target.closest('.chip'); if (!c) return;
   $('rResp').value = $('rChips')._list[+c.dataset.i];
   setFieldError('rResp', 'rErrResp', '');
+  updateRegForm();
   $('rObs').focus();
 });
 $('rQuandoBtn').addEventListener('click', () => {
@@ -1949,6 +2063,7 @@ function resetRegFields(full) {
 $('rLimpar').addEventListener('click', () => { resetRegFields(true); $('rMat').focus(); });
 $('formReg').addEventListener('submit', e => { e.preventDefault(); submitReg(); });
 function submitReg() {
+  if (regTipo === 'dev') return;
   /* trava contra duplo clique ou Enter repetido: o formulário volta para "1" e enviaria de novo */
   if (Date.now() - lastRegAt < 600) return;
   comboResolve();
@@ -1963,11 +2078,11 @@ function submitReg() {
   if (first) { $(first).focus(); return; }
   const q = round3(parseQtd($('rQtd').value));
   if (regTipo === 'out' && q > round3(saldoOf(m.id)) + 1e-9) { updateRegForm(); $('rQtd').focus(); return; }
-  const mov = { id: uid(), mat: m.id, tipo: regTipo, qtd: q, data: dataFinal('r', regDataTouched), resp, obs: $('rObs').value.trim() };
+  const mov = novoMov(m, regTipo, q, dataFinal('r', regDataTouched), resp, $('rObs').value.trim());
   mutate(() => db.movs.push(mov));
   lastRegAt = Date.now();
   rememberReg(m.id, regTipo, resp);
-  toast(`${regTipo === 'in' ? 'Entrada' : 'Saída'} registrada`, { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
+  toast(movTitulo(mov) + ' registrada', { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
   resetRegFields(false);
   renderAll();
   const i = hojeRows.indexOf(mov);
@@ -1977,11 +2092,87 @@ function submitReg() {
 $('rHoje').addEventListener('click', e => { const r = e.target.closest('.row'); if (r) openRegistro(hojeRows[+r.dataset.i].id, r); });
 $('regEmptyNovo').addEventListener('click', e => openNovo('', e.currentTarget));
 function goRegistrar(tipo) {
-  regTipo = tipo; prefs.tipo = tipo; savePrefs();
+  regTipo = tipo;
+  if (tipo !== 'dev') { prefs.tipo = tipo; savePrefs(); }
   setTab('registrar');
   rTipoRG.set(tipo); updateRegForm();
-  if (!$('formReg').hidden) $('rMat').focus();
+  if ($('formReg').hidden) return;
+  if (tipo === 'dev') { const b = $('rDevList').querySelector('.dev-btn'); (b || $('rTipoDev')).focus(); }
+  else $('rMat').focus();
 }
+
+/* Registro novo; a entrada de quem está com o material conta como devolução */
+function novoMov(m, tipo, qtd, data, resp, obs) {
+  const mov = { id: uid(), mat: m.id, tipo, qtd, data, resp, obs };
+  if (tipo === 'in' && comQuem(m.id, resp)) mov.dev = true;
+  return mov;
+}
+const movTitulo = v => (v.tipo === 'out' ? 'Saída' : v.dev === true ? 'Devolução' : 'Entrada');
+
+/* ---------- Devolução: lista de quem está com o quê ---------- */
+let devRows = [];
+function devRowHtml(h, i, comMaterial) {
+  const m = matMap.get(h.mat), quem = h.nome || 'Sem nome';
+  const titulo = comMaterial ? m.nome : quem;
+  const meta = (comMaterial ? quem + ' · ' : '') + desdeTexto(h.desde);
+  const aria = `Devolver ${fmtQ(h.qtd, m.un)} de ${m.nome}, com ${quem}`;
+  return `<div class="row static dev-row"><span class="c-name"><span class="nm">${esc(titulo)}</span><span class="meta"><span class="q-m">${esc(fmtQ(h.qtd, m.un))} · </span>${esc(meta)}</span></span>` +
+    `<span class="dev-q">${esc(fmtQ(h.qtd, m.un))}</span><button type="button" class="btn btn-secondary dev-btn" data-i="${i}" aria-label="${esc(aria)}">Devolver</button></div>`;
+}
+function renderRegDev() {
+  caches();
+  devRows = foraLista.slice();
+  $('rDevList').innerHTML = devRows.length
+    ? devRows.map((h, i) => devRowHtml(h, i, true)).join('')
+    : '<div class="empty-line"><span>Ninguém está com material da sala agora.</span></div>';
+  $('rDevFoot').textContent = devRows.length
+    ? 'Toque em Devolver quando o material voltar. Material de consumo não aparece aqui.'
+    : 'Cada saída aparece aqui até ser devolvida. Material de consumo não aparece aqui.';
+}
+/* Devolve o que a pessoa está levando: tudo de uma vez, ou pergunta quanto voltou.
+   foco() diz onde o foco cai depois (a linha some quando tudo volta). */
+async function devolver(h, trigger, foco) {
+  const m = matById(h.mat);
+  const atual = m && foraDe(m.id).find(x => x.k === h.k);
+  if (!atual) { toast('Esse material já foi devolvido.'); return false; }
+  let q = atual.qtd;
+  if (q > 1) {
+    const quem = atual.nome || 'A pessoa';
+    const r = await confirmar({
+      titulo: 'Devolução',
+      msg: `${quem} está com ${fmtQ(atual.qtd, m.un)} de “${m.nome}”. Quanto voltou?`,
+      okTexto: 'Devolver', okTipo: 'accent', trigger,
+      campo: {
+        valor: NF_RAW.format(atual.qtd), rotulo: 'Quantidade devolvida',
+        sufixo: v => { const x = parseQtd(v); return unidade(m.un, Number.isFinite(x) ? x : atual.qtd); },
+        validar: v => qtyError(v, false) || (round3(parseQtd(v)) > atual.qtd + 1e-9 ? `${quem} está com ${fmtQ(atual.qtd, m.un)}.` : '')
+      }
+    });
+    if (r === false) return false;
+    const agora = matById(m.id) && foraDe(m.id).find(x => x.k === h.k);
+    if (!agora) { toast('Esse material já foi devolvido.'); return false; }
+    q = Math.min(round3(parseQtd(r)), agora.qtd);
+  }
+  const mov = { id: uid(), mat: m.id, tipo: 'in', qtd: q, data: nowLocal(), resp: atual.nome, obs: '', dev: true };
+  mutate(() => db.movs.push(mov));
+  renderAll();
+  refreshSheets();
+  /* com o alerta ainda fechando, o foco só pode ir para fora dele quando ele fechar */
+  if ($('alertDlg').open) $('alertDlg')._focusTo = foco;
+  else { const t = foco(); if (t) t.focus({ preventScroll: true }); }
+  toast('Devolução registrada', { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
+  return true;
+}
+/* depois de devolver, o foco vai para o botão que ocupou o lugar (ou para onde fizer sentido) */
+function alvoDepois(lista, i, resto) {
+  const bs = lista.querySelectorAll('.dev-btn');
+  return bs[Math.min(i, bs.length - 1)] || resto;
+}
+$('rDevList').addEventListener('click', e => {
+  const b = e.target.closest('.dev-btn'); if (!b) return;
+  const i = +b.dataset.i, h = devRows[i];
+  if (h) devolver(h, b, () => alvoDepois($('rDevList'), i, $('rTipoDev')));
+});
 
 /* =====================================================================
    Histórico
@@ -1994,13 +2185,14 @@ function histRowHtml(v, i, md, compact) {
   const qty = (tipo === 'in' ? '+' : MINUS) + NF.format(v.qtd) + NBSP + esc(unidade(un, v.qtd));
   const nome = m ? esc(m.nome) : '<span class="orphan">Material excluído</span>';
   const hm = v.data.slice(11, 16);
-  const aria = esc(`${tipo === 'in' ? 'Entrada' : 'Saída'} de ${fmtQ(v.qtd, un)} de ${m ? m.nome : 'material excluído'}${v.resp ? ', ' + v.resp : ''}, ${dayLabel(v.data.slice(0, 10))}, ${hm}${v.obs ? ', ' + v.obs : ''}`);
+  const obs = v.dev === true && tipo === 'in' ? ['Devolução', v.obs].filter(Boolean).join(' · ') : v.obs;
+  const aria = esc(`${movTitulo(v)} de ${fmtQ(v.qtd, un)} de ${m ? m.nome : 'material excluído'}${v.resp ? ', ' + v.resp : ''}, ${dayLabel(v.data.slice(0, 10))}, ${hm}${v.obs ? ', ' + v.obs : ''}`);
   if (md === 'mob' || compact) {
-    const sub = [v.resp, v.obs].filter(Boolean).join(' · ');
+    const sub = [v.resp, obs].filter(Boolean).join(' · ');
     return `<button type="button" class="row two" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${nome}</span>${sub ? `<span class="meta">${esc(sub)}</span>` : ''}</span><span class="h-right"><span class="h-qty ${tipo}">${qty}</span><span class="h-time">${hm}</span></span>${md === 'mob' ? '' : CHEV}</button>`;
   }
   return `<button type="button" class="row" data-i="${i}" aria-label="${aria}"><span class="h-time">${hm}</span><span class="h-mat"${m ? ` title="${esc(m.nome)}"` : ''}>${nome}</span><span class="h-resp">${esc(v.resp)}</span>` +
-    (md === 'wide' ? `<span class="h-obs"${v.obs ? ` title="${esc(v.obs)}"` : ''}>${esc(v.obs)}</span>` : '') +
+    (md === 'wide' ? `<span class="h-obs"${obs ? ` title="${esc(obs)}"` : ''}>${esc(obs)}</span>` : '') +
     `<span class="h-qty ${tipo}">${qty}</span>${CHEV}</button>`;
 }
 function syncHistMat() {
@@ -2274,10 +2466,14 @@ function fillMaterial() {
   $('smMeta').textContent = [m.cod, m.cat, m.local].filter(Boolean).join(' · ');
   $('smSaldo').textContent = fmtQ(s, m.un);
   $('smMin').textContent = fmtQ(m.min, m.un);
+  const fora = foraDe(m.id);
+  $('smForaBox').hidden = !fora.length;
+  $('smFora').innerHTML = fora.map((h, i) => devRowHtml(h, i, false)).join('');
+  $('smFora')._list = fora;
   const curta = { low: 'Baixo', neg: 'Negativo' };
   $('smSit').textContent = (mqMob.matches && curta[sit]) || k.t || 'Normal';
   $('smSit').title = k.t || '';
-  $('smSit').className = 'val' + (k.c === 'warn' || k.c === 'danger' ? ' ' + k.c : '');
+  $('smSit').className = 'val' + (k.c ? ' ' + k.c : '');
   smTipoRG.set(smTipo);
   renderChips('smChips');
   updateSmForm();
@@ -2285,14 +2481,15 @@ function fillMaterial() {
   $('smUltimas').innerHTML = ult.length
     ? ult.slice(0, 5).map(v => {
         const q = v.tipo === 'in' ? v.qtd : -v.qtd;
-        return `<div class="row static"><span class="mv-l"><span class="mv-q ${v.tipo === 'in' ? 'in' : 'out'}">${esc(fmtSigned(q, m.un))}</span>${v.resp ? ' · ' + esc(v.resp) : ''}</span><span class="mv-when">${esc(whenShort(v.data))}</span></div>`;
+        return `<div class="row static"><span class="mv-l"><span class="mv-q ${v.tipo === 'in' ? 'in' : 'out'}">${esc(fmtSigned(q, m.un))}</span>${v.resp ? ' · ' + esc(v.resp) : ''}${v.dev === true && v.tipo === 'in' ? ' · devolução' : ''}</span><span class="mv-when">${esc(whenShort(v.data))}</span></div>`;
       }).join('') + `<button type="button" class="row act" id="smVerHist"><span>Ver tudo no Histórico</span>${CHEV}</button>`
     : '<div class="row static"><span class="mv-l orphan">Nenhuma movimentação ainda.</span></div>';
 }
 function updateSmForm() {
   const m = matById(smId);
   if (!m) return;
-  const ft = regFoot(m, smTipo, $('smQtd').value);
+  $('smResp').placeholder = smTipo === 'in' ? 'Quem trouxe' : 'Quem pegou';
+  const ft = regFoot(m, smTipo, $('smQtd').value, $('smResp').value);
   $('smFoot').textContent = ft.text;
   $('smFoot').classList.toggle('err', ft.err);
   $('smSubmit').disabled = ft.block;
@@ -2306,12 +2503,26 @@ $('smQtd').addEventListener('input', () => { sizeQty($('smQtd')); setFieldError(
 $('smQtd').addEventListener('focus', () => $('smQtd').select());
 $('smQtdMenos').addEventListener('click', () => stepQty($('smQtd'), -1));
 $('smQtdMais').addEventListener('click', () => stepQty($('smQtd'), 1));
-$('smResp').addEventListener('input', () => setFieldError('smResp', 'smErrResp', ''));
+$('smResp').addEventListener('input', () => { setFieldError('smResp', 'smErrResp', ''); updateSmForm(); });
 $('smChips').addEventListener('click', e => {
   const c = e.target.closest('.chip'); if (!c) return;
   $('smResp').value = $('smChips')._list[+c.dataset.i];
   setFieldError('smResp', 'smErrResp', '');
+  updateSmForm();
   $('smObs').focus();
+});
+$('smFora').addEventListener('click', e => {
+  const b = e.target.closest('.dev-btn'); if (!b) return;
+  const i = +b.dataset.i, h = ($('smFora')._list || [])[i];
+  if (h) devolver(h, b, () => ($('sheetMat').open ? alvoDepois($('smFora'), i, $('smTitle')) : null));
+});
+$('smConsumo').addEventListener('click', () => {
+  const m = matById(smId); if (!m) return;
+  mutate(() => { m.consumo = true; });
+  renderAll();
+  fillMaterial();
+  $('smTitle').focus();
+  toast('Agora é material de consumo', { sub: 'a saída não espera devolução', undo: true });
 });
 $('smQuandoBtn').addEventListener('click', () => {
   const open = $('smQuandoBtn').getAttribute('aria-expanded') !== 'true';
@@ -2335,14 +2546,14 @@ async function submitSheetReg() {
   if (!resp) { $('smResp').focus(); return; }
   const q = round3(parseQtd($('smQtd').value));
   if (smTipo === 'out' && q > round3(saldoOf(m.id)) + 1e-9) { updateSmForm(); $('smQtd').focus(); return; }
-  const mov = { id: uid(), mat: m.id, tipo: smTipo, qtd: q, data: dataFinal('sm', smDataTouched), resp, obs: $('smObs').value.trim() };
+  const mov = novoMov(m, smTipo, q, dataFinal('sm', smDataTouched), resp, $('smObs').value.trim());
   mutate(() => db.movs.push(mov));
   rememberReg(m.id, smTipo, resp);
   if (regMatId === null) regTipo = smTipo;
   renderAll();
   /* fecha primeiro: o toast nasce fora da folha que está saindo; o foco volta à linha re-renderizada */
   const closing = closeDialog($('sheetMat'), { focusTo: () => matRowEl(m.id) });
-  toast(`${smTipo === 'in' ? 'Entrada' : 'Saída'} registrada`, { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
+  toast(movTitulo(mov) + ' registrada', { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
   await closing;
   flashEst(m.id);
 }
@@ -2371,7 +2582,7 @@ $('smAjustar').addEventListener('click', async e => {
   if (r === false || !matById(m.id)) return;
   const d = round3(parseQtd(r) - saldoOf(m.id));
   if (d === 0) { toast('A contagem já confere.'); return; }
-  mutate(() => db.movs.push({ id: uid(), mat: m.id, tipo: d > 0 ? 'in' : 'out', qtd: Math.abs(d), data: nowLocal(), resp: prefs.resp || 'Ajuste', obs: 'Ajuste de inventário' }));
+  mutate(() => db.movs.push({ id: uid(), mat: m.id, tipo: d > 0 ? 'in' : 'out', qtd: Math.abs(d), data: nowLocal(), resp: prefs.resp || 'Ajuste', obs: 'Ajuste de inventário', ajuste: true }));
   renderAll();
   fillMaterial();
   toast('Contagem ajustada', { sub: fmtSigned(d, m.un), undo: true });
@@ -2424,7 +2635,8 @@ $('smEditar').addEventListener('click', () => {
   const m = matById(smId); if (!m) return;
   $('eNome').value = m.nome; $('eCat').value = m.cat; fillUnits($('eUn'), m.un); $('eLocal').value = m.local;
   $('eMin').value = m.min ? NF_RAW.format(m.min) : ''; sizeQty($('eMin'));
-  editInit = { nome: m.nome, cat: m.cat, un: m.un, local: m.local, min: $('eMin').value };
+  $('eConsumo').checked = ehConsumo(m);
+  editInit = { nome: m.nome, cat: m.cat, un: m.un, local: m.local, min: $('eMin').value, consumo: $('eConsumo').checked };
   setFieldError('eNome', 'eErrNome', ''); setFieldError('eMin', 'eErrMin', '');
   $('eFoot').textContent = `O código ${m.cod} não muda. O saldo muda só com entradas e saídas.`;
   updateEditUnits();
@@ -2434,7 +2646,7 @@ $('smEditar').addEventListener('click', () => {
 });
 function editChanged() {
   if (!editInit) return false;
-  return $('eNome').value.trim() !== editInit.nome || $('eCat').value.trim() !== editInit.cat || $('eUn').value !== editInit.un || $('eLocal').value.trim() !== editInit.local || $('eMin').value.trim() !== editInit.min;
+  return $('eNome').value.trim() !== editInit.nome || $('eCat').value.trim() !== editInit.cat || $('eUn').value !== editInit.un || $('eLocal').value.trim() !== editInit.local || $('eMin').value.trim() !== editInit.min || $('eConsumo').checked !== editInit.consumo;
 }
 function updateEditUnits() { const q = parseQtd($('eMin').value); $('eMinSuf').textContent = unidade($('eUn').value, Number.isFinite(q) ? q : 0); }
 $('eNome').addEventListener('input', () => { setFieldError('eNome', 'eErrNome', ''); $('eSalvar').disabled = !$('eNome').value.trim(); });
@@ -2456,7 +2668,7 @@ $('formEdit').addEventListener('submit', e => {
   if (!nome || dup) { $('eNome').focus(); return; }
   if (minErr) { $('eMin').focus(); return; }
   const min = $('eMin').value.trim() ? round3(parseQtd($('eMin').value)) : 0;
-  mutate(() => Object.assign(m, { nome, cat: $('eCat').value.trim(), un: $('eUn').value, local: $('eLocal').value.trim(), min }));
+  mutate(() => Object.assign(m, { nome, cat: $('eCat').value.trim(), un: $('eUn').value, local: $('eLocal').value.trim(), min, consumo: $('eConsumo').checked }));
   editInit = null;
   renderAll();
   smSetMode('detail', true);
@@ -2468,16 +2680,16 @@ $('formEdit').addEventListener('submit', e => {
 /* =====================================================================
    Folha Novo material
    ===================================================================== */
-let novoUnIni = 'un';
+let novoUnIni = 'un', novoConsIni = false;
 function openNovo(nome, trigger) {
   $('formNovo').reset();
   $('cNome').value = nome || '';
-  fillUnits($('cUn'), 'un'); novoUnIni = 'un';
+  fillUnits($('cUn'), 'un'); novoUnIni = 'un'; novoConsIni = false;
   ['cNome:cErrNome', 'cMin:cErrMin', 'cIni:cErrIni'].forEach(x => { const [a, b] = x.split(':'); setFieldError(a, b, ''); });
   updateNovo();
   openDialog($('sheetNovo'), { trigger: trigger || document.activeElement, focus: $('cNome') });
 }
-function novoChanged() { return ['cNome', 'cCat', 'cLocal', 'cMin', 'cIni'].some(id => $(id).value.trim()) || $('cUn').value !== novoUnIni; }
+function novoChanged() { return ['cNome', 'cCat', 'cLocal', 'cMin', 'cIni'].some(id => $(id).value.trim()) || $('cUn').value !== novoUnIni || $('cConsumo').checked !== novoConsIni; }
 function updateNovo() {
   $('cCadastrar').disabled = !$('cNome').value.trim();
   $('cOutro').disabled = !$('cNome').value.trim();
@@ -2508,17 +2720,18 @@ async function submitNovo(outro) {
   const un = $('cUn').value;
   const min = $('cMin').value.trim() ? round3(parseQtd($('cMin').value)) : 0;
   const ini = $('cIni').value.trim() ? round3(parseQtd($('cIni').value)) : 0;
+  const consumo = $('cConsumo').checked;
   let m;
   mutate(() => {
     db.seq = (Number(db.seq) || 0) + 1;
-    m = { id: uid(), cod: 'MAT-' + String(db.seq).padStart(3, '0'), nome, cat: $('cCat').value.trim(), un, local: $('cLocal').value.trim(), min };
+    m = { id: uid(), cod: 'MAT-' + String(db.seq).padStart(3, '0'), nome, cat: $('cCat').value.trim(), un, local: $('cLocal').value.trim(), min, consumo };
     db.materiais.push(m);
     if (ini > 0) db.movs.push({ id: uid(), mat: m.id, tipo: 'in', qtd: ini, data: nowLocal(), resp: 'Cadastro', obs: 'Quantidade inicial' });
   });
   renderAll();
   if (outro) {
     toast(`${nome} cadastrado`, { sub: m.cod, undo: true });
-    $('formNovo').reset(); fillUnits($('cUn'), un); novoUnIni = un; updateNovo();
+    $('formNovo').reset(); fillUnits($('cUn'), un); novoUnIni = un; $('cConsumo').checked = novoConsIni = consumo; updateNovo();
     $('cNome').focus();
     return;
   }
@@ -2544,7 +2757,7 @@ function fillRegistro() {
   const v = db.movs.find(x => x.id === srId);
   if (!v) return false;
   const m = matById(v.mat), un = m ? m.un : 'un';
-  $('srTitle').textContent = v.tipo === 'in' ? 'Entrada' : 'Saída';
+  $('srTitle').textContent = movTitulo(v);
   $('srValores').innerHTML =
     (m ? `<button type="button" class="kv-row" id="srMaterial"><span class="k">Material</span><span class="v">${esc(m.nome)}</span>${CHEV}</button>`
        : '<div class="kv-row"><span class="k">Material</span><span class="v">Material excluído</span></div>') +
@@ -2573,7 +2786,7 @@ $('srExcluir').addEventListener('click', async e => {
     if (depois < 0) { aviso = `O saldo de ${m.nome} ficaria ${fmtQ(depois, un)}.`; okTexto = 'Excluir mesmo assim'; }
   }
   const ok = await confirmar({
-    titulo: v.tipo === 'in' ? 'Excluir esta entrada?' : 'Excluir esta saída?',
+    titulo: `Excluir esta ${movTitulo(v).toLowerCase()}?`,
     msg: `${fmtQ(v.qtd, un)} de ${m ? m.nome : 'material excluído'}${v.resp ? ' · ' + v.resp : ''} · ${whenShort(v.data)}`,
     aviso, okTexto, okTipo: 'danger', trigger: e.currentTarget
   });
@@ -2975,6 +3188,7 @@ document.addEventListener('keydown', e => {
   if (document.querySelector('dialog[open]') || isTextField(e.target)) return;
   try { if (hasPopover && menu.matches(':popover-open')) return; } catch (err) { /* ignorar */ }
   if (e.key === 'n' || e.key === 'N') { e.preventDefault(); goRegistrar(e.shiftKey ? 'in' : 'out'); }
+  else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); goRegistrar('dev'); }
   else if (e.key === '/') {
     e.preventDefault();
     const t = curTab === 'estoque' ? $('fEstBusca') : curTab === 'historico' ? $('fHistBusca') : $('rMat');

@@ -5,8 +5,10 @@ Site para controlar os insumos (materiais) de uma sala: o que tem em estoque, o 
 Link: https://maykilovyz.github.io/controle-insumos/
 
 ## Funcionalidades
-- Estoque com situação de cada material (em dia, abaixo do mínimo, zerado) e busca
-- Registro de entradas e saídas com quantidade, responsável, observação e data
+- Estoque com busca e a aba **Faltando**: o que está com alguém, o que zerou e o que está abaixo do mínimo
+- Registro de saída, devolução e entrada com quantidade, responsável, observação e data
+- Devolução em um toque: Registrar → Devolução mostra quem está com o quê, com o botão Devolver
+- Material de consumo (pilha, fita, papel): a saída não espera devolução
 - Histórico por dia, com filtros
 - Cadastro de materiais com código automático (MAT-001…)
 - Desfazer logo depois de qualquer mudança
@@ -23,6 +25,9 @@ Quem pode o quê:
 - Sem login, ninguém vê nada.
 
 Para liberar alguém: menu `…` → **Pessoas com acesso** → digite o e-mail Google da pessoa.
+
+### Como o "com alguém" é calculado
+Não há tabela de empréstimos: tudo sai do histórico. Cada saída de um material que volta para a sala fica com a pessoa que pegou até voltar. Conta como devolução a entrada feita pelo botão Devolver (`dev: true`) ou uma entrada comum da mesma pessoa (mesmo nome, sem diferença de maiúsculas e acentos) registrada depois da saída. Material marcado como de consumo (`consumo: true`) e ajustes de contagem (`ajuste: true`) não geram pendência. Esses campos extras não exigem mudar as regras do Firestore.
 
 ### Mudar as regras
 1. Edite `firestore.rules`.
