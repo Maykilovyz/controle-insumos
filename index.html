@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Almoxarifado da Sala</title>
+<meta name="theme-color" content="#000000">
+<script>try{if((JSON.parse(localStorage.getItem('insumos-sala-prefs')||'null')||{}).tema==='claro'){document.documentElement.dataset.theme='light';document.querySelector('meta[name="theme-color"]').content='#f2f2f7'}}catch(e){}</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* =====================================================================
@@ -14,11 +16,39 @@
 :root{
   --font:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --bg:#f2f2f7; --surface:#ffffff;
-  --sheet-bg:#f2f2f7; --sheet-surface:#ffffff;
+  /* Escuro (padrão): fundo sólido, cards cinza, vidro só no que flutua */
+  --bg:#000000; --surface:#1e1e1e; --surface-2:#2c2c2e; --surface-hover:#262628;
+  --sheet-surface:#2c2c2e;
+  --label:#f5f5f7; --label-2:#98989f; --label-3:#636366; --placeholder:#8e8e93;
+  --label-2-strong:#d1d1d6; --label-2-onfill:#98989f;
+  --separator:rgba(255,255,255,.08); --separator-strong:#545458;
+  --edge:rgba(255,255,255,.05); --edge-hover:rgba(255,255,255,.1);
+  --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32);
+  --hover:rgba(255,255,255,.05); --pressed:rgba(255,255,255,.08);
+  --accent:#2997ff;
+  --accent-fill:#0071e3; --accent-fill-hover:#0066cc; --accent-fill-pressed:#0058b0; --on-accent:#ffffff;
+  --accent-tint:rgba(41,151,255,.14); --row-flash:rgba(41,151,255,.18);
+  --focus-ring:#2997ff; --field-focus:rgba(41,151,255,.08);
+  --ok:#30d158; --warn:#ff9f0a; --danger:#ff6961; --warn-tint:rgba(255,159,10,.16);
+  --thumb:#636366; --shadow-thumb:0 1px 2px rgba(0,0,0,.3);
+  /* barras: sólidas (sem vidro) */
+  --chrome:#000000; --chrome-surface:#1e1e1e; --tabbar:#121212;
+  /* camadas que flutuam (janelas, painéis, menus, alertas): vidro reduzido */
+  --glass:rgba(44,44,46,.8); --glass-solid:#1c1c1e; --blur:blur(10px);
+  --scrim:rgba(0,0,0,.5); --knob:#ffffff;
+  --shadow-float:0 12px 32px rgba(0,0,0,.5);
+  --shadow-card:0 1px 2px rgba(0,0,0,.4);
+  /* fotos: fundo neutro para peças escuras não sumirem; sem foto, um quadro discreto */
+  --photo-bg:#e8e8ed; --photo-empty:#2c2c2e; --photo-glyph:#636366;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#f2f2f7; --surface:#ffffff; --surface-2:#f2f2f7; --surface-hover:#fafafa;
+  --sheet-surface:#ffffff;
   --label:#1d1d1f; --label-2:#6e6e73; --label-3:#aeaeb2; --placeholder:#6e6e73;
   --label-2-strong:#3c3c43; --label-2-onfill:#5f5f64;
   --separator:rgba(60,60,67,.2); --separator-strong:#c6c6c8;
+  --edge:rgba(0,0,0,.05); --edge-hover:rgba(0,0,0,.1);
   --fill:rgba(118,118,128,.12); --fill-2:rgba(118,118,128,.2);
   --hover:rgba(0,0,0,.035); --pressed:rgba(0,0,0,.06);
   --accent:#0066cc;
@@ -27,70 +57,29 @@
   --focus-ring:#0071e3; --field-focus:rgba(0,113,227,.05);
   --ok:#1b7f37; --warn:#a35200; --danger:#d70015; --warn-tint:rgba(255,149,0,.12);
   --thumb:#ffffff; --shadow-thumb:0 1px 2px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04);
-  --chrome:rgba(246,246,248,.72); --chrome-solid:#f6f6f8;
-  --chrome-surface:rgba(255,255,255,.72); --chrome-surface-solid:#ffffff;
-  --sheet-chrome:rgba(242,242,247,.72); --sheet-chrome-solid:#f2f2f7;
-  --material:rgba(250,250,252,.82); --material-solid:#fafafc;
-  --scrim:rgba(0,0,0,.24); --knob:#ffffff;
+  --chrome:#f2f2f7; --chrome-surface:#ffffff; --tabbar:#f9f9fb;
+  --glass:rgba(242,242,247,.82); --glass-solid:#f2f2f7;
+  --scrim:rgba(0,0,0,.24);
   --shadow-float:0 0 0 .5px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.12);
+  --shadow-card:0 1px 2px rgba(0,0,0,.04);
+  --photo-bg:#e5e5ea; --photo-empty:#f2f2f7; --photo-glyph:#aeaeb2;
   color-scheme:light;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#000000; --surface:#1c1c1e;
-    --sheet-bg:#1c1c1e; --sheet-surface:#2c2c2e;
-    --label:#f5f5f7; --label-2:#98989f; --label-3:#636366; --placeholder:#8e8e93;
-    --label-2-strong:#d1d1d6; --label-2-onfill:#98989f;
-    --separator:rgba(84,84,88,.6); --separator-strong:#545458;
-    --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32);
-    --hover:rgba(255,255,255,.05); --pressed:rgba(255,255,255,.08);
-    --accent:#2997ff;
-    --accent-fill:#0071e3; --accent-fill-hover:#0066cc; --accent-fill-pressed:#0058b0; --on-accent:#ffffff;
-    --accent-tint:rgba(41,151,255,.14); --row-flash:rgba(41,151,255,.18);
-    --focus-ring:#2997ff; --field-focus:rgba(41,151,255,.08);
-    --ok:#30d158; --warn:#ff9f0a; --danger:#ff6961; --warn-tint:rgba(255,159,10,.16);
-    --thumb:#636366; --shadow-thumb:0 1px 2px rgba(0,0,0,.3);
-    --chrome:rgba(28,28,30,.72); --chrome-solid:#1c1c1e;
-    --chrome-surface:rgba(28,28,30,.72); --chrome-surface-solid:#1c1c1e;
-    --sheet-chrome:rgba(28,28,30,.72); --sheet-chrome-solid:#1c1c1e;
-    --material:rgba(44,44,46,.8); --material-solid:#2c2c2e;
-    --scrim:rgba(0,0,0,.48);
-    --shadow-float:0 0 0 .5px rgba(255,255,255,.08),0 12px 32px rgba(0,0,0,.5);
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-    --bg:#000000; --surface:#1c1c1e;
-    --sheet-bg:#1c1c1e; --sheet-surface:#2c2c2e;
-    --label:#f5f5f7; --label-2:#98989f; --label-3:#636366; --placeholder:#8e8e93;
-    --label-2-strong:#d1d1d6; --label-2-onfill:#98989f;
-    --separator:rgba(84,84,88,.6); --separator-strong:#545458;
-    --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.32);
-    --hover:rgba(255,255,255,.05); --pressed:rgba(255,255,255,.08);
-    --accent:#2997ff;
-    --accent-fill:#0071e3; --accent-fill-hover:#0066cc; --accent-fill-pressed:#0058b0; --on-accent:#ffffff;
-    --accent-tint:rgba(41,151,255,.14); --row-flash:rgba(41,151,255,.18);
-    --focus-ring:#2997ff; --field-focus:rgba(41,151,255,.08);
-    --ok:#30d158; --warn:#ff9f0a; --danger:#ff6961; --warn-tint:rgba(255,159,10,.16);
-    --thumb:#636366; --shadow-thumb:0 1px 2px rgba(0,0,0,.3);
-    --chrome:rgba(28,28,30,.72); --chrome-solid:#1c1c1e;
-    --chrome-surface:rgba(28,28,30,.72); --chrome-surface-solid:#1c1c1e;
-    --sheet-chrome:rgba(28,28,30,.72); --sheet-chrome-solid:#1c1c1e;
-    --material:rgba(44,44,46,.8); --material-solid:#2c2c2e;
-    --scrim:rgba(0,0,0,.48);
-    --shadow-float:0 0 0 .5px rgba(255,255,255,.08),0 12px 32px rgba(0,0,0,.5);
-    color-scheme:dark;
-}
-/* Sem vidro: materiais opacos (o seletor triplo vence os blocos escuros) */
+/* Sem vidro: camadas opacas */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  :root:root:root{--chrome:var(--chrome-solid);--chrome-surface:var(--chrome-surface-solid);--sheet-chrome:var(--sheet-chrome-solid);--material:var(--material-solid)}
+  :root:root:root{--glass:var(--glass-solid)}
 }
 @media (prefers-reduced-transparency: reduce){
-  :root:root:root{--chrome:var(--chrome-solid);--chrome-surface:var(--chrome-surface-solid);--sheet-chrome:var(--sheet-chrome-solid);--material:var(--material-solid)}
+  :root:root:root{--glass:var(--glass-solid)}
 }
 @media (prefers-contrast: more){
-  :root:root:root{--chrome:var(--chrome-solid);--chrome-surface:var(--chrome-surface-solid);--sheet-chrome:var(--sheet-chrome-solid);--material:var(--material-solid);--separator:var(--separator-strong);--label-2:var(--label-2-strong)}
+  :root:root:root{--glass:var(--glass-solid);--separator:var(--separator-strong);--label-2:var(--label-2-strong);--edge:var(--separator-strong)}
 }
+/* Texto direto no vidro: uma foto clara passando por trás clareia o fundo.
+   Ali o cinza secundário, o azul e o vermelho ficam um tom mais fortes (4,5:1 ou mais). */
+:is(.sheet,.acao,.alert,.menu,.toast){--label-2:#aeaeb2;--accent:#5eaeff;--danger:#ff8a80}
+:root[data-theme="light"] :is(.sheet,.acao,.alert,.menu,.toast){--label-2:#5f5f64;--accent:#0058b0;--danger:#c00012}
+@media (prefers-contrast: more){ :root:root:root :is(.sheet,.acao,.alert,.menu,.toast){--label-2:var(--label-2-strong)} }
 
 /* =====================================================================
    2. Métricas: espaço, curvas, layout e tipografia
@@ -150,7 +139,7 @@ svg.ico{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stro
 .preload *,.preload *::before,.preload *::after{transition:none!important}
 
 /* Faixa do notch: mesmo vidro da barra */
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;pointer-events:none;background:var(--chrome);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);opacity:0;transition:opacity 200ms var(--ease)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;pointer-events:none;background:var(--chrome);opacity:0;transition:opacity 200ms var(--ease)}
 html[data-scrolled] body::before{opacity:1}
 
 /* =====================================================================
@@ -158,7 +147,7 @@ html[data-scrolled] body::before{opacity:1}
    O header não leva filtro/transform: o vidro fica no ::before.
    ===================================================================== */
 .chrome{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;height:var(--chrome-h)}
-.chrome::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--chrome);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);opacity:0;transition:opacity 200ms var(--ease)}
+.chrome::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--chrome);opacity:0;transition:opacity 200ms var(--ease)}
 .chrome::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--hairline);background:var(--separator);opacity:0;transition:opacity 200ms var(--ease)}
 html[data-scrolled] .chrome::before,html[data-scrolled] .chrome::after{opacity:1}
 .chrome-in{max-width:calc(var(--col) + 2*var(--gutter));margin-inline:auto;height:100%;padding-block:0;padding-left:max(var(--gutter),env(safe-area-inset-left,0px));padding-right:max(var(--gutter),env(safe-area-inset-right,0px));display:flex;align-items:center;gap:var(--s2)}
@@ -278,7 +267,7 @@ main > .banner{margin-top:var(--s4)}
 /* =====================================================================
    7. Grupos, linhas e tabela
    ===================================================================== */
-.group{position:relative;background:var(--surface);border-radius:12px}
+.group{position:relative;background:var(--surface);border-radius:12px;outline:1px solid var(--edge);outline-offset:-1px}
 .group > :first-child{border-top-left-radius:12px;border-top-right-radius:12px}
 .group > :last-child{border-bottom-left-radius:12px;border-bottom-right-radius:12px}
 .row{position:relative;display:grid;align-items:center;gap:var(--s3);width:100%;min-height:44px;margin:0;padding:var(--row-pad) var(--s4);border:0;background:transparent;color:var(--label);font-size:var(--fs-body);line-height:var(--lh-body);text-align:left;cursor:pointer;transition:background-color 120ms var(--ease)}
@@ -289,7 +278,7 @@ main > .banner{margin-top:var(--s4)}
 .row:not(.static):active{background:var(--pressed);transition:none}
 .row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus-ring)}
 .row.static{cursor:default}
-.row.flash::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--row-flash);pointer-events:none;animation:flash 900ms var(--ease-out) forwards}
+.row.flash::before,.card.flash::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--row-flash);pointer-events:none;animation:flash 900ms var(--ease-out) forwards}
 @keyframes flash{from{opacity:1}to{opacity:0}}
 .row.act{display:flex;justify-content:space-between;color:var(--accent)}
 .row.act.danger{color:var(--danger)}
@@ -310,13 +299,16 @@ main > .banner{margin-top:var(--s4)}
 .est .c-sit .sit{max-width:100%}
 
 /* Cabeçalho de colunas e linhas de seção */
-.colhead{position:sticky;top:var(--top);z-index:10;display:grid;align-items:center;gap:var(--s3);height:32px;padding:0 var(--s4);border-bottom:var(--hairline) solid var(--separator);background:var(--chrome-surface);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
+.colhead{position:sticky;top:var(--top);z-index:10;display:grid;align-items:center;gap:var(--s3);height:32px;padding:0 var(--s4);border-bottom:var(--hairline) solid var(--separator);background:var(--chrome-surface);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
 .colhead .r{text-align:right}
 .section-row{display:flex;align-items:center;height:32px;padding:0 var(--s4);border-bottom:var(--hairline) solid var(--separator);background:var(--surface);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
 
 /* Estoque · tabela (desktop) */
-.est.mode-wide .row,.est.mode-wide .colhead{grid-template-columns:minmax(0,1fr) minmax(0,18%) 120px 72px minmax(152px,.9fr) 16px}
-.est.mode-mid .row,.est.mode-mid .colhead{grid-template-columns:minmax(0,1fr) 120px 72px minmax(152px,.9fr) 16px}
+.est.mode-wide .row,.est.mode-wide .colhead{grid-template-columns:32px minmax(0,1fr) minmax(0,18%) 120px 72px minmax(152px,.9fr) 16px}
+.est.mode-mid .row,.est.mode-mid .colhead{grid-template-columns:32px minmax(0,1fr) 120px 72px minmax(152px,.9fr) 16px}
+.est .row .thumb{width:32px;height:32px;border-radius:7px}
+.est .row:not(:last-child)::after{left:calc(var(--s4) + 32px + var(--s3))}
+.est .row.sec-end::after{left:0}
 .est .c-local{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .est .c-local.none,.est .c-min{color:var(--label-2)}
 .est .c-qty,.est .c-min{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -324,14 +316,17 @@ main > .banner{margin-top:var(--s4)}
 .est .c-qty .u{color:var(--label-2)}
 .est:not(.mode-mob) .chev{justify-self:end}
 /* Estoque · lista (celular) */
-.est.mode-mob .row{grid-template-columns:minmax(0,1fr) auto 12px}
+.est.mode-mob .row{grid-template-columns:48px minmax(0,1fr) auto 12px}
+.est.mode-mob .row .thumb{width:48px;height:48px;border-radius:10px}
+.est.mode-mob .row:not(:last-child)::after{left:calc(var(--s4) + 48px + var(--s3))}
+.est.mode-mob .row.sec-end::after{left:0}
 .est.mode-mob .nm{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .est.mode-mob .c-qty .u{color:var(--label)}
 
 /* Histórico */
 .day + .day{margin-top:var(--s6)}
 .dayhead{position:sticky;top:var(--top);z-index:10;display:flex;align-items:center;height:32px;margin:0 0 var(--s2);padding:0 var(--s4);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
-.dayhead::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--chrome);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);opacity:0;transition:opacity 150ms var(--ease)}
+.dayhead::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--chrome);opacity:0;transition:opacity 150ms var(--ease)}
 .dayhead.is-stuck::before{opacity:1}
 .hist .row{grid-template-columns:48px minmax(0,2fr) minmax(0,1.2fr) minmax(0,2fr) 110px 16px}
 .hist.mode-mid .row{grid-template-columns:48px minmax(0,2fr) minmax(0,1.2fr) 110px 16px}
@@ -347,6 +342,7 @@ main > .banner{margin-top:var(--s4)}
 .hist .chev{justify-self:end}
 /* linhas fora da tela não são desenhadas: listas longas continuam leves */
 .est .row,.hist .row{content-visibility:auto;contain-intrinsic-size:auto 58px}
+.est.mode-mob .row{contain-intrinsic-size:auto 70px}
 /* foco por teclado: o scroll-padding do html (barra + 40) já desconta o cabeçalho de colunas ou do dia grudado */
 .more-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s3);margin-top:var(--s4)}
 .more-row .t-caption{color:var(--label-2);font-variant-numeric:tabular-nums}
@@ -428,7 +424,7 @@ main > .banner{margin-top:var(--s4)}
   .reg-side{flex:1 1 auto;min-width:0;max-width:none;margin-top:0;padding-top:24px}
   .reg-side .section-label{margin-top:0}
 }
-.combo-list{position:absolute;left:0;right:0;z-index:30;margin:0;padding:6px;list-style:none;max-height:320px;overflow:auto;overscroll-behavior:contain;border-radius:12px;background:var(--material);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);box-shadow:var(--shadow-float);transform-origin:top center;animation:pop 160ms var(--ease-out)}
+.combo-list{position:absolute;left:0;right:0;z-index:30;margin:0;padding:6px;list-style:none;max-height:320px;overflow:auto;overscroll-behavior:contain;border-radius:12px;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);outline:1px solid var(--edge);outline-offset:-1px;box-shadow:var(--shadow-float);transform-origin:top center;animation:pop 160ms var(--ease-out)}
 .combo-list [role=option]{display:flex;flex-direction:column;padding:6px 10px;border-radius:6px;cursor:pointer}
 .combo-list [role=option][aria-selected="true"]{background:var(--fill-2)}
 .combo-list .o-name{font-size:var(--fs-body);line-height:var(--lh-body)}
@@ -441,15 +437,15 @@ main > .banner{margin-top:var(--s4)}
    9. Folhas (dialog.sheet)
    ===================================================================== */
 dialog{color:var(--label)}
-.sheet{width:min(560px,100vw - 64px);max-width:none;max-height:min(760px,100vh - 96px);max-height:min(760px,100dvh - 96px);margin:auto;padding:0;border:0;border-radius:14px;background:var(--sheet-bg);color:var(--label);box-shadow:var(--shadow-float);overflow-y:auto;overscroll-behavior:contain;opacity:0;transform:translateY(8px) scale(.98);transition:opacity 160ms var(--ease-in),transform 160ms var(--ease-in)}
+.sheet{width:min(560px,100vw - 64px);max-width:none;max-height:min(760px,100vh - 96px);max-height:min(760px,100dvh - 96px);margin:auto;padding:0;border:0;border-radius:14px;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);outline:1px solid var(--edge);outline-offset:-1px;color:var(--label);box-shadow:var(--shadow-float);overflow-y:auto;overscroll-behavior:contain;opacity:0;transform:translateY(8px) scale(.98);transition:opacity 160ms var(--ease-in),transform 160ms var(--ease-in)}
 .sheet.is-open{opacity:1;transform:none;transition-duration:220ms;transition-timing-function:var(--ease-out)}
 #sheetReg{width:min(440px,100vw - 64px)}
 dialog::backdrop{background:var(--scrim);opacity:0;transition:opacity 200ms var(--ease)}
 dialog.is-open::backdrop{opacity:1}
 .sheet .group{background:var(--sheet-surface)}
 .sheet .section-row{background:var(--sheet-surface)}
-.sheet-head{position:sticky;top:0;z-index:1;display:grid;grid-template-columns:minmax(max-content,1fr) minmax(0,max-content) minmax(max-content,1fr);align-items:center;gap:var(--s2);height:52px;padding:0 var(--s4);border-bottom:var(--hairline) solid transparent;background:var(--sheet-chrome);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);transition:border-color 150ms var(--ease)}
-.sheet.is-scrolled .sheet-head{border-bottom-color:var(--separator)}
+.sheet-head{position:sticky;top:0;z-index:2;display:grid;grid-template-columns:minmax(max-content,1fr) minmax(0,max-content) minmax(max-content,1fr);align-items:center;gap:var(--s2);height:52px;padding:0 var(--s4);border-bottom:var(--hairline) solid transparent;background:transparent;transition:border-color 150ms var(--ease),background-color 150ms var(--ease)}
+.sheet.is-scrolled .sheet-head{border-bottom-color:var(--separator);background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);}
 .sheet-head > .start{justify-self:start;margin-left:calc(-1*var(--s2))}
 .sheet-head > .end{justify-self:end;margin-right:calc(-1*var(--s2))}
 .sheet-head .btn-text{font-size:var(--fs-body);line-height:var(--lh-body)}
@@ -498,7 +494,7 @@ button.kv-row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus-ring)}
 /* =====================================================================
    10. Alerta, menu e toast (camadas flutuantes de vidro)
    ===================================================================== */
-.alert{width:300px;max-width:calc(100vw - 32px);margin:auto;padding:20px var(--s4) 0;border:0;border-radius:14px;background:var(--material);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);box-shadow:var(--shadow-float);color:var(--label);text-align:center;overflow:hidden;opacity:0;transform:scale(1.04);transition:opacity 150ms var(--ease-out),transform 150ms var(--ease-out)}
+.alert{width:300px;max-width:calc(100vw - 32px);margin:auto;padding:20px var(--s4) 0;border:0;border-radius:14px;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);outline:1px solid var(--edge);outline-offset:-1px;box-shadow:var(--shadow-float);color:var(--label);text-align:center;overflow:hidden;opacity:0;transform:scale(1.04);transition:opacity 150ms var(--ease-out),transform 150ms var(--ease-out)}
 .alert.is-open{opacity:1;transform:none;transition-duration:200ms}
 .alert-title{font-size:var(--fs-head);line-height:var(--lh-head);font-weight:600;overflow-wrap:anywhere}
 .alert-msg{margin-top:var(--s1);font-size:var(--fs-sub);line-height:var(--lh-sub);color:var(--label);overflow-wrap:anywhere}
@@ -521,7 +517,7 @@ button.kv-row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus-ring)}
 #alertOk{font-weight:600}
 #alertOk.danger{color:var(--danger)}
 
-.menu{position:fixed;inset:auto;width:260px;height:auto;margin:0;padding:6px;border:0;border-radius:12px;background:var(--material);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);box-shadow:var(--shadow-float);color:var(--label);overflow:visible;transform-origin:top right;opacity:0;transform:scale(.96);transition:opacity 120ms var(--ease-out),transform 120ms var(--ease-out)}
+.menu{position:fixed;inset:auto;width:260px;height:auto;margin:0;padding:6px;border:0;border-radius:12px;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);outline:1px solid var(--edge);outline-offset:-1px;box-shadow:var(--shadow-float);color:var(--label);overflow:visible;transform-origin:top right;opacity:0;transform:scale(.96);transition:opacity 120ms var(--ease-out),transform 120ms var(--ease-out)}
 .menu.is-open{opacity:1;transform:none;transition-duration:160ms}
 .menu [role=menuitem]{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);width:100%;height:32px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--label);font-size:var(--fs-body);line-height:var(--lh-body);text-align:left;white-space:nowrap;cursor:pointer}
 .menu [role=menuitem] svg{width:16px;height:16px;color:var(--label-2)}
@@ -530,7 +526,7 @@ button.kv-row:focus-visible{box-shadow:inset 0 0 0 2px var(--focus-ring)}
 .menu-sep{height:var(--hairline);margin:6px 10px;background:var(--separator)}
 .menu-note{padding:var(--s2) 10px;font-size:var(--fs-cap);line-height:var(--lh-cap);color:var(--label-2);white-space:normal}
 
-.toast{position:fixed;inset:auto 0 calc(24px + env(safe-area-inset-bottom,0px)) 0;width:max-content;max-width:min(600px,100vw - 32px);height:auto;min-height:44px;margin:0 auto;padding:10px var(--s4);display:none;align-items:center;gap:var(--s3);border:0;border-radius:12px;background:var(--material);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);box-shadow:var(--shadow-float);color:var(--label);font-size:15px;line-height:20px;text-align:left;text-wrap:balance;overflow:visible;opacity:0;transform:translateY(8px);transition:opacity 160ms var(--ease-in),transform 160ms var(--ease-in)}
+.toast{position:fixed;inset:auto 0 calc(24px + env(safe-area-inset-bottom,0px)) 0;width:max-content;max-width:min(600px,100vw - 32px);height:auto;min-height:44px;margin:0 auto;padding:10px var(--s4);display:none;align-items:center;gap:var(--s3);border:0;border-radius:12px;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);outline:1px solid var(--edge);outline-offset:-1px;box-shadow:var(--shadow-float);color:var(--label);font-size:15px;line-height:20px;text-align:left;text-wrap:balance;overflow:visible;opacity:0;transform:translateY(8px);transition:opacity 160ms var(--ease-in),transform 160ms var(--ease-in)}
 /* o display só vale aberto: fechado, o toast não ocupa tela nem recebe toque */
 .toast:popover-open{display:flex}
 html.no-popover .toast.open{display:flex}
@@ -549,7 +545,101 @@ html.no-popover .toast{z-index:40}
 html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
 
 /* =====================================================================
-   11. Celular (<720): barra compacta, abas embaixo, folhas de baixo
+   11. Fotos: miniaturas, grade de cards, galeria e painel de foto
+   ===================================================================== */
+/* fundo neutro: peça escura não some no fundo escuro; sem foto, um quadro discreto */
+.thumb{position:relative;display:grid;grid-template:100%/100%;place-items:center;overflow:hidden;flex:none;background:var(--photo-bg)}
+.thumb img{display:block;width:100%;height:100%;object-fit:contain}
+.thumb.vazio{background:var(--photo-empty);color:var(--photo-glyph)}
+.thumb.vazio svg{width:45%;height:45%;max-width:32px;max-height:32px;stroke-width:1.4}
+
+/* Estoque em grade (computador) */
+.est.mode-grid{background:none;outline:0}
+.toolbar + .est.mode-grid{margin-top:var(--s5)}
+.est-sec{margin:var(--s6) 0 var(--s3);padding:0 var(--s1);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
+.est-sec:first-child{margin-top:0}
+.est-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:var(--s4)}
+.card{position:relative;display:flex;flex-direction:column;gap:var(--s3);min-width:0;margin:0;padding:var(--s3);border:0;border-radius:16px;background:var(--surface);outline:1px solid var(--edge);outline-offset:-1px;box-shadow:var(--shadow-card);color:var(--label);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color 120ms var(--ease),outline-color 120ms var(--ease),transform 160ms var(--ease-out);content-visibility:auto;contain-intrinsic-size:auto 232px}
+@media (hover:hover){ .card:hover{background:var(--surface-hover);outline-color:var(--edge-hover)} }
+.card:active{transform:scale(.98);transition-duration:80ms}
+.card:focus-visible{outline:2px solid transparent;outline-offset:0;box-shadow:0 0 0 3px var(--focus-ring),var(--shadow-card)}
+.card .thumb{width:100%;aspect-ratio:4/3;border-radius:12px}
+.card-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.card .nm{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;font-size:14px;line-height:18px;font-weight:600}
+.card-qty{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:16px;color:var(--label-2);font-variant-numeric:tabular-nums}
+.card-qty b{font-weight:600;color:var(--label)}
+.card .sit{max-width:100%;margin-top:var(--s1);font-size:12px;line-height:16px}
+
+/* Grade ou lista */
+#fEstVista{--n:2;width:76px;flex:none;margin-left:auto}
+#fEstVista > button{padding:0}
+#fEstVista svg{width:16px;height:16px}
+
+/* Galeria da ficha do material */
+.gal{position:relative;margin-bottom:var(--s4)}
+.gal-stage{display:flex;width:100%;aspect-ratio:16/10;max-height:300px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;border-radius:14px;background:var(--photo-bg);box-shadow:inset 0 0 0 1px var(--edge);outline:none}
+.gal-stage::-webkit-scrollbar{display:none}
+.gal-stage:focus-visible{box-shadow:0 0 0 3px var(--focus-ring)}
+.gal-slide{flex:0 0 100%;height:100%;margin:0;scroll-snap-align:center;scroll-snap-stop:always}
+.gal-slide img{display:block;width:100%;height:100%;object-fit:contain}
+.gal-nav{position:absolute;top:50%;z-index:1;display:grid;place-items:center;width:32px;height:32px;margin-top:-16px;padding:0;border:0;border-radius:50%;background:var(--surface-2);outline:1px solid var(--edge);outline-offset:-1px;box-shadow:var(--shadow-thumb);color:var(--label);cursor:pointer;opacity:0;transition:opacity 150ms var(--ease)}
+.gal-nav svg{width:7px;height:12px;stroke-width:2}
+.gal-nav.prev{left:var(--s2)} .gal-nav.next{right:var(--s2)}
+.gal:hover .gal-nav,.gal-nav:focus-visible{opacity:1}
+.gal .gal-nav:disabled{opacity:0;pointer-events:none}
+@media (hover:none){ .gal-nav{display:none} }
+.gal-count{position:absolute;right:var(--s2);bottom:var(--s2);padding:2px var(--s2);border-radius:999px;background:var(--surface-2);box-shadow:var(--shadow-thumb);font-size:12px;line-height:18px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--label);pointer-events:none}
+.gal-vazio{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);width:100%;height:148px;padding:0;border:0;border-radius:14px;background:var(--sheet-surface);outline:1px solid var(--edge);outline-offset:-1px;color:var(--accent);font-size:var(--fs-sub);line-height:var(--lh-sub);font-weight:500;cursor:pointer;transition:background-color 120ms var(--ease)}
+.gal-vazio svg{width:28px;height:28px;stroke-width:1.5}
+@media (hover:hover){ .gal-vazio:hover{background:linear-gradient(var(--hover),var(--hover)) var(--sheet-surface)} }
+.gal-vazio:active{opacity:.7}
+.gal.drop .gal-stage{outline:2px solid var(--accent);outline-offset:-2px}
+.gal.drop .gal-vazio{box-shadow:inset 0 0 0 2px var(--accent)}
+.gal.ocupada::after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border:2px solid var(--fill-2);border-top-color:var(--label);border-radius:50%;background:var(--glass-solid);box-shadow:0 0 0 6px var(--glass-solid);animation:spin 800ms linear infinite;pointer-events:none}
+.gal.ocupada .gal-vazio > *{visibility:hidden}
+.gal-strip{display:flex;gap:var(--s2);margin-top:var(--s2);padding:3px;overflow-x:auto;scrollbar-width:none}
+.gal-strip::-webkit-scrollbar{display:none}
+.gal-th{position:relative;flex:none;width:52px;height:52px;padding:0;border:0;border-radius:10px;overflow:hidden;background:var(--photo-bg);cursor:pointer;opacity:.55;transition:opacity 120ms var(--ease)}
+.gal-th img{display:block;width:100%;height:100%;object-fit:cover}
+.gal-th[aria-current="true"]{opacity:1;outline:2px solid var(--label);outline-offset:2px}
+@media (hover:hover){ .gal-th:hover{opacity:1} }
+.gal-add{flex:none;display:grid;place-items:center;width:52px;height:52px;padding:0;border:0;border-radius:10px;background:var(--sheet-surface);outline:1px solid var(--edge);outline-offset:-1px;color:var(--accent);cursor:pointer}
+.gal-add svg{width:20px;height:20px;stroke-width:2}
+.gal-acts{display:flex;flex-wrap:wrap;justify-content:space-between;gap:0 var(--s2);margin:var(--s1) calc(-1*var(--s2)) 0}
+#smGalExcluir{margin-left:auto}
+.gal-nota{margin-top:var(--s2);padding:0 var(--s1);font-size:var(--fs-sub);line-height:var(--lh-sub);color:var(--label-2)}
+
+/* Foto no cadastro */
+.novo-foto{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s4)}
+.novo-foto .thumb{width:64px;height:64px;border-radius:12px}
+.novo-foto-acts{display:flex;flex-wrap:wrap;gap:0 var(--s1);margin-left:calc(-1*var(--s2))}
+.novo-foto.ocupada .thumb::after{content:"";position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border:2px solid var(--fill-2);border-top-color:var(--label-2);border-radius:50%;animation:spin 800ms linear infinite}
+
+/* Painel de foto (Câmera, Galeria): folha de ações que sobe de baixo */
+.acao{inset:auto 0 0 0;width:min(420px,100vw - 16px);max-width:none;max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));margin:0 auto calc(8px + env(safe-area-inset-bottom,0px));padding:0;border:0;background:transparent;color:var(--label);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;transform:translateY(calc(100% + 24px));transition:transform 240ms var(--ease-in)}
+.acao.is-open{transform:none;transition:transform 360ms var(--ease-sheet)}
+.acao-grupo,.acao-cancelar{border-radius:14px;background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);outline:1px solid var(--edge);outline-offset:-1px;overflow:hidden}
+.acao-titulo{padding:14px var(--s4);border-bottom:var(--hairline) solid var(--separator);font-size:13px;line-height:18px;font-weight:600;color:var(--label-2);text-align:center}
+.acao-btn{display:flex;align-items:center;justify-content:center;gap:var(--s2);width:100%;height:56px;padding:0 var(--s4);border:0;background:transparent;color:var(--accent);font-size:19px;line-height:24px;cursor:pointer;transition:background-color 120ms var(--ease)}
+.acao-btn svg{width:22px;height:22px}
+.acao-grupo .acao-btn + .acao-btn{border-top:var(--hairline) solid var(--separator)}
+.acao-cancelar{display:flex;margin-top:var(--s2);font-weight:600}
+@media (hover:hover){ .acao-btn:hover{background:var(--hover)} }
+.acao-btn:active{background:var(--pressed);transition:none}
+.acao-btn:focus-visible{box-shadow:inset 0 0 0 2px var(--focus-ring)}
+.acao-cancelar{background:var(--glass)}
+@media (hover:hover){ .acao-cancelar:hover{background:linear-gradient(var(--hover),var(--hover)) var(--glass)} }
+.acao-cancelar:active{background:linear-gradient(var(--pressed),var(--pressed)) var(--glass)}
+/* um aviso aberto antes do painel ficaria por baixo dos botões: some enquanto o painel está aberto */
+html:has(#acaoFoto[open]) .toast{visibility:hidden}
+@media (prefers-reduced-motion: reduce){ .gal.ocupada::after,.novo-foto.ocupada .thumb::after{animation:none} }
+@media (forced-colors:active){
+  .card,.gal-stage,.gal-vazio,.acao-grupo,.acao-cancelar{border:1px solid CanvasText}
+  :is(.card,.gal-stage,.gal-vazio,.gal-add,.gal-th,.gal-nav,.acao-btn):focus-visible{outline:2px solid Highlight;outline-offset:-2px}
+}
+
+/* =====================================================================
+   12. Celular (<720): barra compacta, abas embaixo, folhas de baixo
    ===================================================================== */
 @media (max-width:719.98px){
   .chrome-in{display:grid;grid-template-columns:88px minmax(0,1fr) 88px;gap:0}
@@ -562,7 +652,7 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   .btn-bar .lbl{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   @media (hover:hover){ .btn-bar:hover,.btn-icon:hover{background:var(--fill)} }
 
-  #tabs{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:20;width:auto;height:var(--tabbar-h);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:var(--hairline) solid var(--separator);border-radius:0;background:var(--chrome);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+  #tabs{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:20;width:auto;height:var(--tabbar-h);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:var(--hairline) solid var(--separator);border-radius:0;background:var(--tabbar)}
   #tabs .seg-thumb{display:none}
   #tabs > button{flex-direction:column;justify-content:center;gap:2px;height:49px;padding:0 var(--s1);border-radius:0;color:var(--label-2);font-size:11px;line-height:13px;font-weight:500}
   #tabs > button::before{display:none}
@@ -625,8 +715,17 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   .dev-row .dev-q{display:none}
   .dev-row .q-m{display:inline}
   .dev-row .nm{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  #fEstVista{display:none}
+  .gal-stage{aspect-ratio:4/3;max-height:42vh}
+  .gal-vazio{height:128px}
 }
-@media (max-width:359.98px){ .seg-count{display:none} }
+@media (max-width:359.98px){
+  .seg-count{display:none}
+  .est.mode-mob .row{grid-template-columns:40px minmax(0,1fr) auto 12px}
+  .est.mode-mob .row .thumb{width:40px;height:40px;border-radius:9px}
+  .est.mode-mob .row:not(:last-child)::after{left:calc(var(--s4) + 40px + var(--s3))}
+  .est.mode-mob .row.sec-end::after{left:0}
+}
 @media (pointer:coarse){
   input,select,textarea{font-size:max(16px,1em)}
   .search input,.field input,.field select{font-size:max(16px,var(--fs-ctl))}
@@ -667,8 +766,8 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
 /* =====================================================================
    Banco compartilhado: entrada, pessoas com acesso, sincronização
    ===================================================================== */
-.gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;overflow-y:auto;padding-block:max(var(--s4),env(safe-area-inset-top,0px)) max(var(--s4),env(safe-area-inset-bottom,0px));padding-left:max(var(--s4),env(safe-area-inset-left,0px));padding-right:max(var(--s4),env(safe-area-inset-right,0px));background:var(--chrome);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px)}
-.gate-card{display:flex;flex-direction:column;align-items:center;gap:var(--s3);width:100%;max-width:360px;padding:var(--s7) var(--s6) var(--s6);border-radius:16px;background:var(--surface);box-shadow:var(--shadow-float);text-align:center}
+.gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;overflow-y:auto;padding-block:max(var(--s4),env(safe-area-inset-top,0px)) max(var(--s4),env(safe-area-inset-bottom,0px));padding-left:max(var(--s4),env(safe-area-inset-left,0px));padding-right:max(var(--s4),env(safe-area-inset-right,0px));background:var(--bg)}
+.gate-card{outline:1px solid var(--edge);outline-offset:-1px;display:flex;flex-direction:column;align-items:center;gap:var(--s3);width:100%;max-width:360px;padding:var(--s7) var(--s6) var(--s6);border-radius:16px;background:var(--surface);box-shadow:var(--shadow-float);text-align:center}
 .gate-card:focus{outline:none}
 .gate-ico{width:36px;height:36px;color:var(--accent);stroke-width:1.5}
 .gate-title{margin:0;font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
@@ -695,7 +794,6 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
 .sync-dot.wait{background:var(--label-3)}
 .sync-dot.off{background:var(--warn)}
 @media (prefers-reduced-motion: reduce){.spinner{animation:none}.field .switch,.field .switch::after{transition:none}}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.gate{background:var(--bg)}}
 </style>
 </head>
 <body>
@@ -717,6 +815,13 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"></rect><path d="M15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"></path></symbol>
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4.5M8.5 8 12 4.5 15.5 8M5 13.5v4A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-4"></path></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.5V15M8.5 11.5 12 15l3.5-3.5M5 13.5v4A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-4"></path></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.75A1.75 1.75 0 0 1 5.75 7H8l1.3-1.9a1.5 1.5 0 0 1 1.24-.6h2.92a1.5 1.5 0 0 1 1.24.6L16 7h2.25A1.75 1.75 0 0 1 20 8.75v8.5A1.75 1.75 0 0 1 18.25 19H5.75A1.75 1.75 0 0 1 4 17.25z"></path><circle cx="12" cy="12.75" r="3.25"></circle></symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.25"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="m4 17.25 4.75-4.75 3.5 3.5 2.5-2.5 5.25 5"></path></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"></rect><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"></rect><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"></rect><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"></rect></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9.5 6.5H20M9.5 12H20M9.5 17.5H20"></path><circle cx="5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="5" cy="12" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="5" cy="17.5" r="1.1" fill="currentColor" stroke="none"></circle></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 7 12"><path d="M6 1 1 6l5 5"></path></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.75"></circle><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M6 18l1.4-1.4M16.6 7.4 18 6"></path></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.25A7.75 7.75 0 0 1 9.75 4.5a7.75 7.75 0 1 0 9.75 9.75z"></path></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V7M6.5 7l.8 11.2A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.8L17.5 7M10.5 11v5M13.5 11v5"></path></symbol>
 </svg>
 
@@ -774,6 +879,11 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
         <span class="seg-thumb" aria-hidden="true"></span>
         <button type="button" role="radio" id="fEstTodos" data-v="todos" aria-checked="true" tabindex="0"><span>Todos</span></button>
         <button type="button" role="radio" id="fEstFalta" data-v="falta" aria-checked="false" tabindex="-1"><span>Faltando</span><span class="seg-count tnum" id="fEstFaltaN"></span></button>
+      </div>
+      <div class="seg tall" role="radiogroup" aria-label="Visualização" id="fEstVista" style="--i:0;--n:2">
+        <span class="seg-thumb" aria-hidden="true"></span>
+        <button type="button" role="radio" id="fEstGrade" data-v="grade" aria-checked="true" tabindex="0" aria-label="Grade" title="Grade"><svg class="ico" aria-hidden="true"><use href="#i-grid"></use></svg></button>
+        <button type="button" role="radio" id="fEstLista" data-v="lista" aria-checked="false" tabindex="-1" aria-label="Lista" title="Lista"><svg class="ico" aria-hidden="true"><use href="#i-list"></use></svg></button>
       </div>
     </div>
     <div class="group est mode-wide" id="estGroup"></div>
@@ -892,6 +1002,16 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
     <button type="submit" form="formEdit" class="btn-text strong end" id="eSalvar" hidden>Salvar</button>
   </div>
   <div class="sheet-body" id="smDetail">
+    <div class="gal" id="smGal">
+      <div class="gal-stage" id="smGalStage" tabindex="0" role="group" aria-roledescription="galeria" aria-label="Fotos do material"></div>
+      <button type="button" class="gal-nav prev" id="smGalPrev" aria-label="Foto anterior"><svg class="ico" aria-hidden="true"><use href="#i-chevron-left"></use></svg></button>
+      <button type="button" class="gal-nav next" id="smGalNext" aria-label="Próxima foto"><svg class="ico" aria-hidden="true"><use href="#i-chevron-right"></use></svg></button>
+      <span class="gal-count" id="smGalCount" aria-hidden="true"></span>
+      <button type="button" class="gal-vazio" id="smGalVazio"><svg class="ico" aria-hidden="true"><use href="#i-camera"></use></svg><span>Adicionar foto</span></button>
+    </div>
+    <div class="gal-strip" id="smGalStrip" role="group" aria-label="Fotos"></div>
+    <div class="gal-acts" id="smGalActs"><button type="button" class="btn-text" id="smGalCapa">Usar como capa</button><button type="button" class="btn-text danger" id="smGalExcluir">Excluir foto</button></div>
+    <p class="gal-nota" id="smGalNota" hidden></p>
     <p class="sheet-meta" id="smMeta"></p>
     <div class="group strip" id="smStrip">
       <div><span class="cap">Na sala</span><span class="val" id="smSaldo"></span></div>
@@ -970,6 +1090,10 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
     <button type="submit" form="formNovo" class="btn-text strong end" id="cCadastrar" disabled>Cadastrar</button>
   </div>
   <form class="sheet-body" id="formNovo" novalidate>
+    <div class="novo-foto" id="cFotoBox">
+      <span class="thumb vazio" id="cFotoThumb"><svg class="ico" aria-hidden="true"><use href="#i-photo"></use></svg></span>
+      <span class="novo-foto-acts"><button type="button" class="btn-text" id="cFotoAdd">Adicionar foto</button><button type="button" class="btn-text danger" id="cFotoRem" hidden>Remover</button></span>
+    </div>
     <div class="group wide-labels">
       <div class="field"><label for="cNome">Nome</label><input id="cNome" type="text" placeholder="Ex.: Resistor 220Ω" autocomplete="off" enterkeyhint="next"></div>
       <div class="field"><label for="cCat">Categoria</label><input id="cCat" type="text" list="catList" placeholder="Ex.: Eletrônica" autocomplete="off" enterkeyhint="next"></div>
@@ -1078,6 +1202,19 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   </div>
 </dialog>
 
+<!-- Painel de foto: Câmera ou Galeria -->
+<dialog class="acao" id="acaoFoto" aria-labelledby="acaoTitulo">
+  <div class="acao-grupo">
+    <h2 class="acao-titulo" id="acaoTitulo">Adicionar foto</h2>
+    <button type="button" class="acao-btn" id="acaoCamera"><svg class="ico" aria-hidden="true"><use href="#i-camera"></use></svg>Câmera</button>
+    <button type="button" class="acao-btn" id="acaoGaleria"><svg class="ico" aria-hidden="true"><use href="#i-photo"></use></svg>Galeria</button>
+    <button type="button" class="acao-btn" id="acaoSem" hidden>Cadastrar sem foto</button>
+  </div>
+  <button type="button" class="acao-btn acao-cancelar" id="acaoCancelar">Cancelar</button>
+</dialog>
+<input type="file" id="fotoCamera" class="sr-only" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+<input type="file" id="fotoGaleria" class="sr-only" accept="image/*" tabindex="-1" aria-hidden="true">
+
 <!-- Alerta único -->
 <dialog class="alert" id="alertDlg" role="alertdialog" aria-labelledby="alertTitle" aria-describedby="alertMsg">
   <h2 class="alert-title" id="alertTitle"></h2>
@@ -1106,6 +1243,8 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   <div class="menu-sep" role="separator" id="miSepConta" hidden></div>
   <button type="button" role="menuitem" id="miAcesso" tabindex="-1" hidden><span>Pessoas com acesso…</span><svg class="ico" aria-hidden="true"><use href="#i-people"></use></svg></button>
   <button type="button" role="menuitem" id="miSair" tabindex="-1" hidden><span>Sair</span><svg class="ico" aria-hidden="true"><use href="#i-signout"></use></svg></button>
+  <div class="menu-sep" role="separator"></div>
+  <button type="button" role="menuitem" id="miTema" tabindex="-1"><span id="miTemaTx">Tema claro</span><svg class="ico" aria-hidden="true"><use id="miTemaIco" href="#i-sun"></use></svg></button>
   <div class="menu-sep" role="separator"></div>
   <p class="menu-note" id="menuNote" role="none">Os dados ficam salvos só neste navegador. Último backup: nunca.</p>
 </div>
@@ -1379,13 +1518,18 @@ function save() {
 /* Toda mutação passa por aqui: guarda o desfazer e grava. */
 function mutate(fn) {
   undo = { snap: clone(db), ver };
+  const antes = db.materiais.map(m => m.id);
   fn();
   ver++;
-  return save();
+  const ok = save();
+  /* material que sumiu (excluído, exemplos, backup restaurado): as fotos esperam o Desfazer acabar */
+  if (ok) for (const id of antes) if (!matById(id)) fotosOrfas.set(id, undo);
+  limparFotosOrfas();
+  return ok;
 }
 
 /* Preferências (nunca vão para a chave de dados) */
-const prefs = { aba: 'estoque', filtroEst: 'todos', tipo: 'out', resp: '', resps: [], mats: [], ultimoBackup: '' };
+const prefs = { aba: 'estoque', filtroEst: 'todos', vista: 'grade', tema: 'escuro', tipo: 'out', resp: '', resps: [], mats: [], ultimoBackup: '' };
 function loadPrefs() {
   try {
     const p = JSON.parse(localStorage.getItem(PKEY) || 'null');
@@ -1393,6 +1537,8 @@ function loadPrefs() {
     if (['estoque', 'registrar', 'historico'].includes(p.aba)) prefs.aba = p.aba;
     if (p.filtroEst === 'todos') prefs.filtroEst = 'todos';
     else if (['falta', 'repor', 'zerados'].includes(p.filtroEst)) prefs.filtroEst = 'falta';
+    if (p.vista === 'grade' || p.vista === 'lista') prefs.vista = p.vista;
+    if (p.tema === 'claro' || p.tema === 'escuro') prefs.tema = p.tema;
     if (p.tipo === 'in' || p.tipo === 'out') prefs.tipo = p.tipo;
     if (typeof p.resp === 'string') prefs.resp = p.resp.slice(0, 120);
     if (Array.isArray(p.resps)) prefs.resps = p.resps.filter(x => typeof x === 'string' && x.trim()).slice(0, 5);
@@ -1702,6 +1848,7 @@ function renderPanel(t) {
    ===================================================================== */
 let estRows = [];
 const filtroEst = radiogroup($('fEstFiltro'), v => { prefs.filtroEst = v; savePrefs(); renderEstoque(); });
+const vistaRG = radiogroup($('fEstVista'), v => { prefs.vista = v; savePrefs(); renderEstoque(); });
 function estAria(m, s) {
   const parts = [m.nome, `${fmtQ(saldoOf(m.id), m.un)} na sala`];
   if (s === 'low') parts.push(`abaixo do mínimo de ${fmtNum(m.min)}`);
@@ -1716,6 +1863,20 @@ function sitHtml(m, s) {
   return t ? `<span class="sit ${k.c}" title="${esc(t)}"><span class="dot" aria-hidden="true"></span><span class="sit-tx">${esc(t)}</span></span>` : '';
 }
 const CHEV = '<svg class="ico chev" aria-hidden="true"><use href="#i-chevron-right"></use></svg>';
+/* miniatura da capa; sem foto, um quadro discreto */
+function thumbHtml(m) {
+  const f = capaDe(m);
+  return f ? `<span class="thumb"><img src="${esc(urlMini(f))}" alt="" loading="lazy" decoding="async" draggable="false"></span>`
+    : '<span class="thumb vazio"><svg class="ico" aria-hidden="true"><use href="#i-photo"></use></svg></span>';
+}
+function cardHtml(m, s, i) {
+  const q = saldoOf(m.id), k = SIT[s], t = sitTexto(m, s);
+  return `<button type="button" class="card" data-i="${i}" aria-label="${esc(estAria(m, s))}">${thumbHtml(m)}` +
+    `<span class="card-info"><span class="nm" title="${esc(m.nome)}">${esc(m.nome)}</span>` +
+    `<span class="card-qty"><b>${fmtNum(q)}</b>${NBSP}${esc(unidade(m.un, q))}${m.local ? ' · ' + esc(m.local) : ''}</span>` +
+    (t ? `<span class="sit ${k.c}" title="${esc(t)}"><span class="dot" aria-hidden="true"></span><span class="sit-tx">${esc(t)}</span></span>` : '') +
+    '</span></button>';
+}
 function estRowHtml(m, s, i, md, secEnd) {
   const q = saldoOf(m.id);
   const cls = `row${secEnd ? ' sec-end' : ''}`;
@@ -1724,10 +1885,10 @@ function estRowHtml(m, s, i, md, secEnd) {
     const k = SIT[s], t = sitTexto(m, s), com = !!comTexto(m);
     /* com alguém: o nome de quem está com o material não pode ser cortado; código e local ficam na folha */
     const sub = com ? `<span class="sit-t ${k.c}">${esc(t)}</span>` : (t ? `<span class="sit-t ${k.c}">${esc(t)}</span> · ` : '') + esc([m.cod, m.local].filter(Boolean).join(' · '));
-    return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${esc(m.nome)}</span><span class="meta${com ? ' wrap2' : ''}">${sub}</span></span><span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>${CHEV}</button>`;
+    return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}">${thumbHtml(m)}<span class="c-name"><span class="nm">${esc(m.nome)}</span><span class="meta${com ? ' wrap2' : ''}">${sub}</span></span><span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>${CHEV}</button>`;
   }
   const meta = [m.cod, m.cat, md === 'mid' ? m.local : ''].filter(Boolean).join(' · ');
-  return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}">` +
+  return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}">${thumbHtml(m)}` +
     `<span class="c-name"><span class="nm" title="${esc(m.nome)}">${esc(m.nome)}</span><span class="meta">${esc(meta)}</span></span>` +
     (md === 'wide' ? `<span class="c-local${m.local ? '' : ' none'}"${m.local ? ` title="${esc(m.local)}"` : ''}>${m.local ? esc(m.local) : '—'}</span>` : '') +
     `<span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>` +
@@ -1737,6 +1898,12 @@ function renderEstoque() {
   dirty.estoque = false;
   caches();
   const md = mode(), g = $('estGroup');
+  const a = document.activeElement, focoId = a && g.contains(a) && a.dataset.i != null ? (estRows[+a.dataset.i] || {}).id : null;
+  const voltarFoco = () => {
+    if (!focoId) return;
+    const i = estRows.findIndex(m => m.id === focoId), el = i >= 0 && g.querySelector(`[data-i="${i}"]`);
+    if (el) el.focus({ preventScroll: true });
+  };
   g.className = `group est mode-${md}`;
   $('estToolbar').hidden = !db.materiais.length;
   if (!db.materiais.length) {
@@ -1757,21 +1924,29 @@ function renderEstoque() {
     return;
   }
   const bySev = (a, b) => SIT[a.s].ord - SIT[b.s].ord || COLL.compare(a.m.nome, b.m.nome);
-  let html = md === 'mob' ? '' : `<div class="colhead" aria-hidden="true"><span>Material</span>${md === 'wide' ? '<span>Local</span>' : ''}<span class="r">Na sala</span><span class="r">Mínimo</span><span>Situação</span></div>`;
-  estRows = [];
-  const add = (arr, endLast) => arr.forEach((x, j) => { html += estRowHtml(x.m, x.s, estRows.length, md, endLast && j === arr.length - 1); estRows.push(x.m); });
   /* seções na ordem: com alguém, para repor, em dia (títulos só quando há mais de uma) */
-  const secs = GRUPOS.map(([g, t]) => [t, list.filter(x => SIT[x.s].grupo === g)]).filter(([, a]) => a.length);
+  const secs = GRUPOS.map(([g, t]) => [t, list.filter(x => SIT[x.s].grupo === g).sort(bySev)]).filter(([, a]) => a.length);
+  estRows = [];
+  if (md !== 'mob' && prefs.vista !== 'lista') {
+    g.className = 'est mode-grid';
+    g.innerHTML = secs.map(([t, arr]) => (secs.length > 1 ? `<h3 class="est-sec">${t}</h3>` : '') +
+      `<div class="est-grid">${arr.map(x => { estRows.push(x.m); return cardHtml(x.m, x.s, estRows.length - 1); }).join('')}</div>`).join('');
+    voltarFoco();
+    return;
+  }
+  let html = md === 'mob' ? '' : `<div class="colhead" aria-hidden="true"><span></span><span>Material</span>${md === 'wide' ? '<span>Local</span>' : ''}<span class="r">Na sala</span><span class="r">Mínimo</span><span>Situação</span></div>`;
+  const add = (arr, endLast) => arr.forEach((x, j) => { html += estRowHtml(x.m, x.s, estRows.length, md, endLast && j === arr.length - 1); estRows.push(x.m); });
   secs.forEach(([t, arr], i) => {
     if (secs.length > 1) html += `<h3 class="section-row">${t}</h3>`;
-    add(arr.sort(bySev), i < secs.length - 1);
+    add(arr, i < secs.length - 1);
   });
   g.innerHTML = html;
+  voltarFoco();
 }
 $('estGroup').addEventListener('click', e => {
   const t = e.target.closest('button');
   if (!t) return;
-  if (t.classList.contains('row')) return openMaterial(estRows[+t.dataset.i].id, { trigger: t });
+  if (t.classList.contains('row') || t.classList.contains('card')) return openMaterial(estRows[+t.dataset.i].id, { trigger: t });
   if (t.id === 'estVazioNovo') return openNovo('', t);
   if (t.id === 'estLimparBusca') { setSearch('fEstBusca', ''); $('fEstBusca').focus(); return; }
   if (t.id === 'estCadastrarBusca') return openNovo($('fEstBusca').value.trim(), t);
@@ -1790,7 +1965,7 @@ function flashEst(id) {
   if (curTab !== 'estoque') return;
   if (dirty.estoque) renderEstoque();
   const i = estRows.findIndex(m => m.id === id);
-  if (i >= 0) flash($('estGroup').querySelector(`.row[data-i="${i}"]`));
+  if (i >= 0) flash($('estGroup').querySelector(`[data-i="${i}"]`));
 }
 function flash(el) {
   if (!el) return;
@@ -2310,7 +2485,7 @@ $('histList').addEventListener('click', e => {
 /* =====================================================================
    Diálogos: abrir, fechar, foco e Esc
    ===================================================================== */
-const DIALOGS = ['sheetMat', 'sheetNovo', 'sheetReg', 'sheetBackup', 'sheetRestore', 'sheetAcesso', 'alertDlg'].map($);
+const DIALOGS = ['sheetMat', 'sheetNovo', 'sheetReg', 'sheetBackup', 'sheetRestore', 'sheetAcesso', 'acaoFoto', 'alertDlg'].map($);
 let dlgSeq = 0;
 /* camada de cima: o diálogo aberto mais recentemente que não está fechando */
 function topDialog() {
@@ -2326,6 +2501,7 @@ function openDialog(dlg, { trigger, focus } = {}) {
   dlg._focusTo = null;
   dlg.classList.remove('is-open', 'is-scrolled');
   if (!dlg.open) dlg.showModal();
+  if (dlg !== $('acaoFoto') && toastEl.classList.contains('in')) placeToast(true);
   dlg.scrollTop = 0;
   root.classList.add('modal-open');
   void dlg.offsetWidth;
@@ -2358,7 +2534,7 @@ function matRowEl(id) {
   if (curTab !== 'estoque' || !id) return null;
   if (dirty.estoque) renderEstoque();
   const i = estRows.findIndex(m => m.id === id);
-  return i >= 0 ? $('estGroup').querySelector(`.row[data-i="${i}"]`) : null;
+  return i >= 0 ? $('estGroup').querySelector(`[data-i="${i}"]`) : null;
 }
 function visible(el) { return el && el.isConnected && !el.closest('[hidden]') && !(el.closest('dialog') && !el.closest('dialog').open) && el.getClientRects().length > 0; }
 DIALOGS.forEach(dlg => {
@@ -2468,6 +2644,7 @@ function openMaterial(id, { trigger, tipo } = {}) {
   const m = matById(id);
   if (!m) return;
   smId = id; smTipo = tipo || prefs.tipo || 'out';
+  gal.mat = null;
   smSetMode('detail', false);
   $('smQtd').value = '1'; sizeQty($('smQtd'));
   $('smResp').value = smInit.resp = prefs.resp;
@@ -2509,6 +2686,7 @@ function fillMaterial() {
         return `<div class="row static"><span class="mv-l"><span class="mv-q ${nv ? 'nv' : v.tipo === 'in' ? 'in' : 'out'}">${esc(nv ? fmtQ(v.qtd, m.un) : fmtSigned(q, m.un))}</span>${v.resp ? ' · ' + esc(v.resp) : ''}${v.dev === true && v.tipo === 'in' ? ' · ' + movTitulo(v).toLowerCase() : ''}</span><span class="mv-when">${esc(whenShort(v.data))}</span></div>`;
       }).join('') + `<button type="button" class="row act" id="smVerHist"><span>Ver tudo no Histórico</span>${CHEV}</button>`
     : '<div class="row static"><span class="mv-l orphan">Nenhuma movimentação ainda.</span></div>';
+  if (smMode === 'detail') renderGaleria();
 }
 function updateSmForm() {
   const m = matById(smId);
@@ -2614,10 +2792,11 @@ $('smAjustar').addEventListener('click', async e => {
 });
 $('smExcluir').addEventListener('click', async e => {
   const m = matById(smId); if (!m) return;
-  const n = db.movs.filter(v => v.mat === m.id).length;
+  const n = db.movs.filter(v => v.mat === m.id).length, nf = (fotos.porMat.get(m.id) || []).length;
+  const itens = [n ? `${n === 1 ? 'o registro' : `os ${NF.format(n)} registros`} dele no histórico` : '', nf ? (nf === 1 ? 'a foto' : `as ${NF.format(nf)} fotos`) : ''].filter(Boolean);
   const ok = await confirmar({
     titulo: `Excluir “${m.nome}”?`,
-    msg: n ? `O material e ${n === 1 ? 'o registro' : `os ${NF.format(n)} registros`} dele no histórico serão excluídos.` : 'O material será excluído.',
+    msg: itens.length === 2 ? `O material, ${itens[0]} e ${itens[1]} serão excluídos.` : itens.length ? `O material e ${itens[0]} serão excluídos.` : 'O material será excluído.',
     okTexto: 'Excluir', okTipo: 'danger', trigger: e.currentTarget
   });
   if (!ok || !matById(m.id)) return;
@@ -2625,7 +2804,7 @@ $('smExcluir').addEventListener('click', async e => {
   mutate(() => { db.materiais = db.materiais.filter(x => x.id !== m.id); db.movs = db.movs.filter(v => v.mat !== m.id); });
   if (regMatId === m.id) { regMatId = null; $('rMat').value = ''; }
   renderAll();
-  const focusRow = () => { const g = $('estGroup'); return g.querySelector(`.row[data-i="${idx}"]`) || g.querySelector(`.row[data-i="${idx - 1}"]`) || fallbackFocus(); };
+  const focusRow = () => { const g = $('estGroup'); return g.querySelector(`[data-i="${idx}"]`) || g.querySelector(`[data-i="${idx - 1}"]`) || fallbackFocus(); };
   closeDialog($('sheetMat'), { focusTo: focusRow });
   toast(`“${m.nome}” excluído`, { undo: true });
 });
@@ -2706,15 +2885,17 @@ $('formEdit').addEventListener('submit', e => {
    Folha Novo material
    ===================================================================== */
 let novoUnIni = 'un', novoConsIni = false;
-function openNovo(nome, trigger) {
+function openNovo(nome, trigger, arquivo) {
   $('formNovo').reset();
+  novoFoto = null; novoFotoSeq++; $('cFotoBox').classList.remove('ocupada'); renderNovoFoto();
+  if (arquivo) novoComFoto(arquivo);
   $('cNome').value = nome || '';
   fillUnits($('cUn'), 'un'); novoUnIni = 'un'; novoConsIni = false;
   ['cNome:cErrNome', 'cMin:cErrMin', 'cIni:cErrIni'].forEach(x => { const [a, b] = x.split(':'); setFieldError(a, b, ''); });
   updateNovo();
   openDialog($('sheetNovo'), { trigger: trigger || document.activeElement, focus: $('cNome') });
 }
-function novoChanged() { return ['cNome', 'cCat', 'cLocal', 'cMin', 'cIni'].some(id => $(id).value.trim()) || $('cUn').value !== novoUnIni || $('cConsumo').checked !== novoConsIni; }
+function novoChanged() { return ['cNome', 'cCat', 'cLocal', 'cMin', 'cIni'].some(id => $(id).value.trim()) || $('cUn').value !== novoUnIni || $('cConsumo').checked !== novoConsIni || !!novoFoto; }
 function updateNovo() {
   $('cCadastrar').disabled = !$('cNome').value.trim();
   $('cOutro').disabled = !$('cNome').value.trim();
@@ -2742,6 +2923,7 @@ async function submitNovo(outro) {
   if (errNome) { $('cNome').focus(); return; }
   if (errMin) { $('cMin').focus(); return; }
   if (errIni) { $('cIni').focus(); return; }
+  if ($('cFotoBox').classList.contains('ocupada')) { toast('Aguarde a foto terminar de carregar.'); return; }
   const un = $('cUn').value;
   const min = $('cMin').value.trim() ? round3(parseQtd($('cMin').value)) : 0;
   const ini = $('cIni').value.trim() ? round3(parseQtd($('cIni').value)) : 0;
@@ -2753,6 +2935,8 @@ async function submitNovo(outro) {
     db.materiais.push(m);
     if (ini > 0) db.movs.push({ id: uid(), mat: m.id, tipo: 'in', qtd: ini, data: nowLocal(), resp: 'Cadastro', obs: 'Quantidade inicial' });
   });
+  if (novoFoto && fotosOk()) gravarFoto(m, novoFoto).catch(e => { if (!nuvem) toast(erroFotoTexto(e), { error: true }); });
+  novoFoto = null; novoFotoSeq++; renderNovoFoto();
   renderAll();
   if (outro) {
     toast(`${nome} cadastrado`, { sub: m.cod, undo: true });
@@ -2765,7 +2949,12 @@ async function submitNovo(outro) {
   await closing;
   flashEst(m.id);
 }
-$('btnNovo').addEventListener('click', e => openNovo('', e.currentTarget));
+/* celular: o "+" começa pela foto (Câmera ou Galeria), com a opção de cadastrar sem foto */
+$('btnNovo').addEventListener('click', e => {
+  const b = e.currentTarget;
+  if (mqMob.matches && fotosOk()) pedirFotos(files => openNovo('', b, files[0]), { titulo: 'Novo material', sem: () => openNovo('', b), trigger: b });
+  else openNovo('', b);
+});
 
 /* =====================================================================
    Folha do registro
@@ -2825,6 +3014,514 @@ $('srExcluir').addEventListener('click', async e => {
   closeDialog($('sheetReg'), { focusTo: focusRow });
   toast('Registro excluído', { undo: true });
 });
+
+/* =====================================================================
+   Fotos dos materiais
+   Ficam fora de `db` (pesadas demais para o backup e o desfazer). A
+   miniatura de cada foto chega com a lista; a imagem grande, só quando a
+   galeria abre. Banco compartilhado: coleções `fotos` e `imagens`.
+   Sem banco: IndexedDB deste navegador.
+   ===================================================================== */
+const FOTO_MAX = 1280, MINI_MAX = 320, FOTO_LIM = 900000, MINI_LIM = 60000, FOTOS_POR_MAT = 8;
+/* o mesmo cinza de --photo-bg: imagem com fundo transparente vira peça sobre o fundo da miniatura */
+const FOTO_FUNDO = '#e8e8ed';
+const fotos = { lista: [], porMat: new Map(), estado: 'carregando', urls: new Map(), grandes: new Map(), pedidos: new Map() };
+let fotosBackend = null, fotosParar = null;
+const fotosOk = () => fotos.estado === 'ok' && !!fotosBackend;
+const podeExcluirFoto = f => !nuvem || isAdmin || (!!me && f.por === me.email);
+const reduzMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function blobDeDataUrl(u) {
+  const i = u.indexOf(','), bin = atob(u.slice(i + 1)), a = new Uint8Array(bin.length);
+  for (let k = 0; k < bin.length; k++) a[k] = bin.charCodeAt(k);
+  return new Blob([a], { type: u.slice(5, i).split(';')[0] || 'image/jpeg' });
+}
+/* data URL vira blob: o HTML da grade não carrega centenas de textos de 20 KB a cada redesenho */
+function urlDe(dataUrl) { try { return URL.createObjectURL(blobDeDataUrl(dataUrl)); } catch (e) { return dataUrl; } }
+function soltarUrl(u) { if (u && u.startsWith('blob:')) URL.revokeObjectURL(u); }
+
+function fotosRecebidas(lista) {
+  const validas = lista.filter(f => f && typeof f.id === 'string' && typeof f.mat === 'string' && typeof f.mini === 'string' && f.mini.startsWith('data:image/'));
+  const vivos = new Set(validas.map(f => f.id));
+  for (const mapa of [fotos.urls, fotos.grandes]) for (const [id, u] of mapa) if (!vivos.has(id)) { soltarUrl(u); mapa.delete(id); }
+  /* o id começa pela hora: ordem de id é a ordem em que as fotos foram tiradas */
+  fotos.lista = validas.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  fotos.porMat = new Map();
+  for (const f of fotos.lista) { const a = fotos.porMat.get(f.mat); if (a) a.push(f); else fotos.porMat.set(f.mat, [f]); }
+  fotos.estado = 'ok';
+  fotosMudaram();
+  limparFotosOrfas();
+}
+function fotosLimpar(estado) {
+  for (const mapa of [fotos.urls, fotos.grandes]) { mapa.forEach(soltarUrl); mapa.clear(); }
+  fotos.lista = []; fotos.porMat = new Map(); fotos.estado = estado;
+  fotosMudaram();
+}
+function fotosMudaram() {
+  dirty.estoque = true;
+  if (curTab === 'estoque') renderEstoque();
+  if ($('sheetMat').open && smMode === 'detail') renderGaleria();
+  if ($('sheetNovo').open) renderNovoFoto();
+}
+/* a capa (escolhida ou a mais antiga) vem primeiro */
+function fotosDe(m) {
+  const a = (m && fotos.porMat.get(m.id)) || [];
+  const i = m && m.capa ? a.findIndex(f => f.id === m.capa) : -1;
+  return i > 0 ? [a[i], ...a.slice(0, i), ...a.slice(i + 1)] : a;
+}
+const capaDe = m => fotosDe(m)[0] || null;
+function urlMini(f) {
+  let u = fotos.urls.get(f.id);
+  if (!u) { u = urlDe(f.mini); fotos.urls.set(f.id, u); }
+  return u;
+}
+function urlGrande(f) {
+  const ja = fotos.grandes.get(f.id);
+  if (ja) return Promise.resolve(ja);
+  let p = fotos.pedidos.get(f.id);
+  if (!p) {
+    p = Promise.resolve().then(() => fotosBackend.imagem(f.id)).then(img => {
+      if (typeof img !== 'string' || !img.startsWith('data:image/') || !fotos.lista.some(x => x.id === f.id)) return null;
+      const u = urlDe(img);
+      fotos.grandes.set(f.id, u);
+      return u;
+    }).catch(() => null).finally(() => fotos.pedidos.delete(f.id));
+    fotos.pedidos.set(f.id, p);
+  }
+  return p;
+}
+
+/* Reduz e comprime no aparelho: até 1280 px (cabe num documento do Firestore) e uma miniatura de 320 px */
+async function prepararFoto(file) {
+  if (!file || !(/^image\//.test(file.type || '') || /\.(jpe?g|png|webp|gif|bmp|heic|heif|avif)$/i.test(file.name || ''))) throw new Error('tipo');
+  let fonte = null, w = 0, h = 0, fechar = () => {};
+  try {
+    const b = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    fonte = b; w = b.width; h = b.height; fechar = () => b.close();
+  } catch (e) {
+    const url = URL.createObjectURL(file);
+    try {
+      const im = new Image();
+      im.src = url;
+      await im.decode();
+      fonte = im; w = im.naturalWidth; h = im.naturalHeight;
+    } catch (e2) { URL.revokeObjectURL(url); throw new Error('formato'); }
+    fechar = () => URL.revokeObjectURL(url);
+  }
+  try {
+    if (!w || !h) throw new Error('formato');
+    const desenhar = (src, sw, sh, max) => {
+      const k = Math.min(1, max / Math.max(sw, sh));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
+      const x = c.getContext('2d');
+      x.fillStyle = FOTO_FUNDO;
+      x.fillRect(0, 0, c.width, c.height);
+      x.imageSmoothingQuality = 'high';
+      x.drawImage(src, 0, 0, c.width, c.height);
+      return c;
+    };
+    let max = FOTO_MAX, c = desenhar(fonte, w, h, max), img = c.toDataURL('image/jpeg', 0.82);
+    while (img.length > FOTO_LIM && max > 480) { max = Math.round(max * 0.8); c = desenhar(fonte, w, h, max); img = c.toDataURL('image/jpeg', 0.78); }
+    if (img.length > FOTO_LIM || !img.startsWith('data:image/jpeg')) throw new Error('grande');
+    /* a miniatura sai da imagem já reduzida: fica mais nítida que reduzir 4000 px de uma vez */
+    let mmax = MINI_MAX, mc = desenhar(c, c.width, c.height, mmax), mini = mc.toDataURL('image/jpeg', 0.72);
+    while (mini.length > MINI_LIM && mmax > 120) { mmax = Math.round(mmax * 0.8); mc = desenhar(c, c.width, c.height, mmax); mini = mc.toDataURL('image/jpeg', 0.7); }
+    return { img, mini, w: c.width, h: c.height };
+  } finally { fechar(); }
+}
+function erroFotoTexto(e) {
+  const c = e && e.message;
+  return c === 'tipo' ? 'Escolha uma imagem (JPG ou PNG).'
+    : c === 'formato' ? 'Não foi possível abrir esta imagem. Use JPG ou PNG.'
+    : c === 'grande' ? 'A imagem é grande demais.'
+    : c === 'espaco' ? 'Sem espaço para fotos neste navegador.'
+    : 'Não foi possível guardar a foto.';
+}
+function erroFotoNuvem(e) {
+  toast(e && e.code === 'permission-denied' ? 'Sem permissão para guardar ou apagar esta foto.' : 'Não foi possível enviar a foto ao banco.', { error: true, dur: 6000 });
+}
+function gravarFoto(m, p) {
+  const f = { id: uid(), mat: m.id, mini: p.mini, w: p.w, h: p.h, criado: nowLocal(), por: me ? me.email : '' };
+  /* a imagem grande já está aqui: a galeria não precisa buscar de volta */
+  fotos.grandes.set(f.id, urlDe(p.img));
+  gal.querer = f.id;
+  const r = Promise.resolve().then(() => fotosBackend.adicionar(f, p.img));
+  if (nuvem) r.catch(erroFotoNuvem);
+  return r;
+}
+/* fotos ainda sendo preparadas, por material: contam no limite (arrastar de novo antes de terminar) */
+const fotosEmCurso = new Map();
+function emCurso(matId, d) {
+  const n = (fotosEmCurso.get(matId) || 0) + d;
+  if (n > 0) fotosEmCurso.set(matId, n); else fotosEmCurso.delete(matId);
+  galOcupada();
+}
+async function adicionarFotos(matId, files) {
+  const m = matById(matId);
+  if (!m || !fotosOk() || !files.length) return;
+  const tem = () => (fotos.porMat.get(m.id) || []).length;
+  const livres = FOTOS_POR_MAT - tem() - (fotosEmCurso.get(m.id) || 0);
+  if (livres <= 0) { toast(`Cada material guarda até ${FOTOS_POR_MAT} fotos.`); return; }
+  const lista = files.slice(0, livres);
+  let ok = 0, erro = null, resta = lista.length;
+  emCurso(m.id, resta);
+  try {
+    for (const file of lista) {
+      try {
+        const p = await prepararFoto(file);
+        if (!matById(m.id) || !fotosOk() || tem() >= FOTOS_POR_MAT) break;
+        const r = gravarFoto(m, p);
+        if (!nuvem) await r;
+        ok++;
+      } catch (e) { erro = e; }
+      finally { resta--; emCurso(m.id, -1); }
+    }
+  } finally { if (resta) emCurso(m.id, -resta); }
+  if (ok) toast(ok === 1 ? 'Foto adicionada' : `${ok} fotos adicionadas`, files.length > lista.length ? { sub: `limite de ${FOTOS_POR_MAT} por material` } : { nome: m.nome });
+  else if (erro) toast(erroFotoTexto(erro), { error: true, dur: 6000 });
+}
+async function excluirFoto(f, trigger) {
+  const m = matById(f.mat);
+  const ok = await confirmar({ titulo: 'Excluir esta foto?', msg: m ? m.nome : '', okTexto: 'Excluir', okTipo: 'danger', trigger });
+  if (!ok || !fotos.lista.some(x => x.id === f.id)) return;
+  const r = Promise.resolve().then(() => fotosBackend.remover([f]));
+  if (nuvem) r.catch(erroFotoNuvem);
+  else { try { await r; } catch (e) { toast(erroFotoTexto(e), { error: true }); return; } }
+  toast('Foto excluída');
+}
+function usarComoCapa(f) {
+  const m = matById(f.mat);
+  if (!m) return;
+  mutate(() => { m.capa = f.id; });
+  gal.querer = f.id;
+  renderAll();
+  fillMaterial();
+  toast('Capa alterada', { nome: m.nome, undo: true });
+}
+
+/* Material excluído: as fotos só vão embora quando o Desfazer não é mais possível.
+   fotosOrfas: id do material → o Desfazer que ainda pode trazê-lo de volta (null: nenhum) */
+const fotosOrfas = new Map();
+function limparFotosOrfas(agora = false) {
+  /* sem a lista de fotos (carregando, erro), espera: fotosRecebidas chama de novo */
+  if (!fotosOk()) return Promise.resolve();
+  const feitos = [];
+  for (const [id, ref] of fotosOrfas) {
+    if (matById(id)) { fotosOrfas.delete(id); continue; }
+    if (!agora && ref && undo === ref) continue;
+    fotosOrfas.delete(id);
+    const lista = (fotos.porMat.get(id) || []).filter(podeExcluirFoto);
+    if (lista.length) feitos.push(Promise.resolve().then(() => fotosBackend.remover(lista)).catch(() => { /* a varredura da próxima abertura tenta de novo */ }));
+  }
+  return Promise.all(feitos);
+}
+/* ida para o cache de voltar/avançar não é saída: o Desfazer ainda pode voltar com a página */
+addEventListener('pagehide', e => { if (!e.persisted) limparFotosOrfas(true); });
+/* Sobras (aba fechada durante o Desfazer, falha de rede): fotos de material que não existe mais.
+   Só as com mais de um dia, para não apagar a de um material que outro aparelho acabou de cadastrar,
+   e nunca em massa: lista de materiais vazia ou suspeita não apaga nada. */
+let fotosVarridas = false;
+function varrerFotosOrfas() {
+  if (fotosVarridas || !fotosOk() || !db.materiais.length) return;
+  if (nuvem ? !carregou || remoto.cache.mats || !isAdmin : !storageOk || corruptRaw !== null || db.demo) return;
+  fotosVarridas = true;
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  const limite = stamp(d);
+  const lista = fotos.lista.filter(f => !matById(f.mat) && !fotosOrfas.has(f.mat) && typeof f.criado === 'string' && f.criado < limite && podeExcluirFoto(f));
+  if (!lista.length || lista.length > Math.max(16, fotos.lista.length / 4)) return;
+  Promise.resolve().then(() => fotosBackend.remover(lista)).catch(() => { /* fica para a próxima */ });
+}
+
+/* ---------- Banco compartilhado ---------- */
+const fotosNuvem = {
+  assinar() {
+    return fb.onSnapshot(fb.collection(fstore, 'fotos'), s => fotosRecebidas(s.docs.map(d => ({ ...d.data(), id: d.id }))), e => {
+      /* regras antigas (sem fotos) não derrubam o resto do app */
+      fotos.estado = e && e.code === 'permission-denied' ? 'regras' : 'erro';
+      fotosMudaram();
+    });
+  },
+  adicionar(f, img) {
+    const { id, ...dados } = f;
+    const lote = fb.writeBatch(fstore);
+    lote.set(fb.doc(fstore, 'fotos', id), dados);
+    lote.set(fb.doc(fstore, 'imagens', id), { mat: f.mat, img, por: f.por });
+    return lote.commit();
+  },
+  remover(lista) {
+    const lote = fb.writeBatch(fstore);
+    for (const f of lista) { lote.delete(fb.doc(fstore, 'fotos', f.id)); lote.delete(fb.doc(fstore, 'imagens', f.id)); }
+    return lote.commit();
+  },
+  imagem(id) { return fb.getDoc(fb.doc(fstore, 'imagens', id)).then(s => (s.exists() ? s.data().img : null)); }
+};
+function fotosAssinar() {
+  if (fotosParar) fotosParar();
+  fotos.estado = 'carregando';
+  fotosParar = fotosNuvem.assinar();
+}
+/* regras atualizadas no console: ao voltar para a página, tenta de novo */
+addEventListener('focus', () => { if (nuvem && me && carregou && (fotos.estado === 'regras' || fotos.estado === 'erro')) fotosAssinar(); });
+
+/* ---------- Só neste navegador (IndexedDB) ---------- */
+const fotosLocal = {
+  idb: null,
+  abrir() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('insumos-sala-fotos', 1);
+      r.onupgradeneeded = () => {
+        const d = r.result;
+        if (!d.objectStoreNames.contains('fotos')) d.createObjectStore('fotos', { keyPath: 'id' });
+        if (!d.objectStoreNames.contains('imagens')) d.createObjectStore('imagens', { keyPath: 'id' });
+      };
+      r.onsuccess = () => {
+        const d = r.result;
+        d.onclose = d.onversionchange = () => { try { d.close(); } catch (e) { /* já fechada */ } if (this.idb === d) this.idb = null; };
+        res(d);
+      };
+      r.onerror = () => rej(r.error);
+      r.onblocked = () => rej(new Error('bloqueado'));
+    });
+  },
+  async tx(stores, modo, fn, denovo = true) {
+    if (!this.idb) this.idb = await this.abrir();
+    try {
+      return await new Promise((res, rej) => {
+        const t = this.idb.transaction(stores, modo);
+        const req = fn(t);
+        t.oncomplete = () => res(req ? req.result : undefined);
+        t.onerror = ev => rej((ev && ev.target && ev.target.error) || t.error);
+        t.onabort = () => rej(t.error || new Error('abortado'));
+      });
+    } catch (e) {
+      if (!denovo || !e || e.name !== 'InvalidStateError') throw e;
+      this.idb = null;
+      return this.tx(stores, modo, fn, false);
+    }
+  },
+  async assinar() {
+    try {
+      if (!window.indexedDB) throw new Error('sem');
+      this.idb = await this.abrir();
+      fotosRecebidas((await this.tx(['fotos'], 'readonly', t => t.objectStore('fotos').getAll())) || []);
+      setTimeout(varrerFotosOrfas, 5000);
+    } catch (e) { fotosLimpar('off'); }
+  },
+  async adicionar(f, img) {
+    try { await this.tx(['fotos', 'imagens'], 'readwrite', t => { t.objectStore('fotos').put(f); t.objectStore('imagens').put({ id: f.id, mat: f.mat, img }); }); }
+    catch (e) { throw new Error(e && e.name === 'QuotaExceededError' ? 'espaco' : 'gravar'); }
+    fotosRecebidas([...fotos.lista.filter(x => x.id !== f.id), f]);
+  },
+  async remover(lista) {
+    const ids = new Set(lista.map(f => f.id));
+    await this.tx(['fotos', 'imagens'], 'readwrite', t => { for (const id of ids) { t.objectStore('fotos').delete(id); t.objectStore('imagens').delete(id); } });
+    fotosRecebidas(fotos.lista.filter(x => !ids.has(x.id)));
+  },
+  imagem(id) { return this.tx(['imagens'], 'readonly', t => t.objectStore('imagens').get(id)).then(r => (r ? r.img : null)); }
+};
+
+/* ---------- Galeria da ficha ---------- */
+const gal = { mat: null, sig: '', idx: 0, lista: [], querer: null, timer: 0, alvo: null, ate: 0 };
+function galOcupada() {
+  const on = !!gal.mat && fotosEmCurso.has(gal.mat);
+  $('smGal').classList.toggle('ocupada', on);
+  $('smGal').setAttribute('aria-busy', String(on));
+}
+/* o que tinha o foco na galeria (antes de redesenhar ou esconder) */
+const galFocado = () => { const a = document.activeElement; return a && a !== document.body && ['smGal', 'smGalStrip', 'smGalActs'].some(id => $(id).contains(a)) ? a : null; };
+function galDevolverFoco(antes) {
+  if (!antes || !$('sheetMat').open) return;
+  if (antes.isConnected && !antes.closest('[hidden]') && !antes.disabled && document.activeElement === antes) return;
+  const mesmo = antes.id && $(antes.id);
+  const alvo = mesmo && !mesmo.closest('[hidden]') && !mesmo.disabled ? mesmo
+    : !$('smGalStage').closest('[hidden]') ? $('smGalStage')
+    : !$('smGalVazio').closest('[hidden]') ? $('smGalVazio')
+    : $('sheetMat').querySelector('.sheet-title') || $('sheetMat');
+  alvo.focus({ preventScroll: true });
+}
+function renderGaleria() {
+  const m = matById(smId);
+  if (!m) return;
+  const antes = galFocado();
+  const lista = fotosDe(m), ok = fotosOk(), n = lista.length;
+  if (gal.mat !== m.id) {
+    gal.mat = m.id; gal.idx = 0; gal.sig = '';
+    /* só as imagens grandes deste material ficam guardadas */
+    for (const [id, u] of fotos.grandes) if (!lista.some(f => f.id === id)) { soltarUrl(u); fotos.grandes.delete(id); }
+    galOcupada();
+  }
+  const sig = [fotos.estado, lista.map(f => f.id).join(',')].join('|');
+  if (sig !== gal.sig) {
+    gal.sig = sig; gal.lista = lista;
+    if (gal.querer) { const i = lista.findIndex(f => f.id === gal.querer); if (i >= 0) { gal.idx = i; gal.querer = null; } }
+    gal.idx = Math.max(0, Math.min(gal.idx, n - 1));
+    const st = $('smGalStage');
+    st.innerHTML = lista.map((f, i) => `<div class="gal-slide"><img src="${esc(fotos.grandes.get(f.id) || urlMini(f))}" alt="${esc(`Foto ${i + 1} de ${n}: ${m.nome}`)}" data-id="${esc(f.id)}" decoding="async" draggable="false"></div>`).join('');
+    st.hidden = !n;
+    $('smGalVazio').hidden = n > 0 || !ok;
+    $('smGal').hidden = !n && !ok;
+    const thumbs = n > 1 ? lista.map((f, i) => `<button type="button" class="gal-th" data-i="${i}" aria-label="Foto ${i + 1} de ${n}"><img src="${esc(urlMini(f))}" alt="" decoding="async" draggable="false"></button>`).join('') : '';
+    const add = ok && n < FOTOS_POR_MAT ? '<button type="button" class="gal-add" id="smGalAdd" aria-label="Adicionar foto" title="Adicionar foto"><svg class="ico" aria-hidden="true"><use href="#i-plus"></use></svg></button>' : '';
+    $('smGalStrip').innerHTML = n ? thumbs + add : '';
+    $('smGalStrip').hidden = !n || !(thumbs || add);
+    const nota = fotos.estado === 'regras' ? (isAdmin ? 'Fotos indisponíveis: as regras do Firebase precisam ser atualizadas (arquivo firestore.rules).' : 'Fotos indisponíveis por enquanto.')
+      : fotos.estado === 'off' ? 'Este navegador não guarda fotos.'
+      : fotos.estado === 'erro' ? 'Não foi possível carregar as fotos.'
+      : n >= FOTOS_POR_MAT ? `Limite de ${FOTOS_POR_MAT} fotos por material.` : '';
+    $('smGalNota').textContent = nota; $('smGalNota').hidden = !nota;
+    /* trocar o conteúdo zera a rolagem: volta para a foto escolhida no próximo quadro (a folha já está aberta) */
+    requestAnimationFrame(() => { const w = st.clientWidth; if (w) st.scrollLeft = gal.idx * w; });
+  }
+  galAtualizar(antes);
+}
+function galAtualizar(antes = galFocado()) {
+  const n = gal.lista.length, i = gal.idx, f = gal.lista[i];
+  $('smGalCount').textContent = n > 1 ? `${i + 1} de ${n}` : '';
+  $('smGalCount').hidden = $('smGalPrev').hidden = $('smGalNext').hidden = n < 2;
+  $('smGalPrev').disabled = i <= 0;
+  $('smGalNext').disabled = i >= n - 1;
+  $('smGalStrip').querySelectorAll('.gal-th').forEach((b, j) => b.setAttribute('aria-current', String(j === i)));
+  const ok = fotosOk();
+  $('smGalCapa').hidden = !f || i === 0 || !ok;
+  $('smGalExcluir').hidden = !f || !ok || !podeExcluirFoto(f);
+  $('smGalActs').hidden = $('smGalCapa').hidden && $('smGalExcluir').hidden;
+  galDevolverFoco(antes);
+  /* imagem grande da foto atual e das vizinhas; até chegar, a miniatura ocupa o lugar */
+  for (const k of [i, i + 1, i - 1]) {
+    const g = gal.lista[k];
+    if (!g || fotos.grandes.has(g.id)) continue;
+    urlGrande(g).then(u => {
+      if (!u) return;
+      const img = [...$('smGalStage').querySelectorAll('img')].find(x => x.dataset.id === g.id);
+      if (img) img.src = u;
+    });
+  }
+}
+function galIr(i, suave = true) {
+  const n = gal.lista.length;
+  if (!n) return;
+  gal.idx = Math.max(0, Math.min(n - 1, i));
+  gal.alvo = gal.idx; gal.ate = Date.now() + 800;
+  const st = $('smGalStage');
+  st.scrollTo({ left: gal.idx * st.clientWidth, behavior: suave && !reduzMovimento() ? 'smooth' : 'instant' });
+  galAtualizar();
+  /* o contador é só visual: quem usa leitor de tela ouve qual foto está na tela */
+  announce(`Foto ${gal.idx + 1} de ${n}`);
+}
+function pedirFotosMat(trigger) {
+  const id = smId;
+  pedirFotos(files => adicionarFotos(id, files), { multiplo: true, trigger });
+}
+/* a foto da vez segue a rolagem (dedo, trackpad); a rolagem animada das setas não volta o índice no meio do caminho */
+function galSeguirRolagem() {
+  const st = $('smGalStage'), w = st.clientWidth;
+  if (!w) return;
+  const i = Math.max(0, Math.min(gal.lista.length - 1, Math.round(st.scrollLeft / w)));
+  if (gal.alvo !== null && i !== gal.alvo && Date.now() < gal.ate) { clearTimeout(gal.timer); gal.timer = setTimeout(galSeguirRolagem, gal.ate - Date.now() + 20); return; }
+  gal.alvo = null;
+  if (i !== gal.idx) { gal.idx = i; galAtualizar(); }
+}
+$('smGalStage').addEventListener('scroll', () => { clearTimeout(gal.timer); gal.timer = setTimeout(galSeguirRolagem, 60); }, { passive: true });
+$('smGalStage').addEventListener('keydown', e => {
+  const map = { ArrowRight: gal.idx + 1, ArrowLeft: gal.idx - 1, Home: 0, End: gal.lista.length - 1 };
+  if (e.key in map) { e.preventDefault(); galIr(map[e.key]); }
+});
+$('smGalPrev').addEventListener('click', () => galIr(gal.idx - 1));
+$('smGalNext').addEventListener('click', () => galIr(gal.idx + 1));
+$('smGalVazio').addEventListener('click', e => pedirFotosMat(e.currentTarget));
+$('smGalStrip').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'smGalAdd') pedirFotosMat(b);
+  else if (b.classList.contains('gal-th')) galIr(+b.dataset.i);
+});
+$('smGalCapa').addEventListener('click', () => { const f = gal.lista[gal.idx]; if (f) usarComoCapa(f); });
+$('smGalExcluir').addEventListener('click', e => { const f = gal.lista[gal.idx]; if (f) excluirFoto(f, e.currentTarget); });
+/* computador: arrastar imagens para a galeria ou para o cadastro */
+const temArquivos = e => !!e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+const soImagens = list => [...(list || [])].filter(f => /^image\//.test(f.type));
+function zonaDeFoto(el, onFiles) {
+  el.addEventListener('dragover', e => { if (!temArquivos(e) || !fotosOk()) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; el.classList.add('drop'); });
+  el.addEventListener('dragleave', e => { if (!el.contains(e.relatedTarget)) el.classList.remove('drop'); });
+  el.addEventListener('drop', e => {
+    if (!temArquivos(e)) return;
+    e.preventDefault();
+    el.classList.remove('drop');
+    const files = soImagens(e.dataTransfer.files);
+    if (files.length && fotosOk()) onFiles(files);
+  });
+}
+zonaDeFoto($('smGal'), files => adicionarFotos(smId, files));
+zonaDeFoto($('cFotoBox'), files => novoComFoto(files[0]));
+/* soltar um arquivo fora da zona não abre a imagem no lugar do app */
+document.addEventListener('dragover', e => { if (temArquivos(e)) e.preventDefault(); });
+document.addEventListener('drop', e => { if (temArquivos(e)) e.preventDefault(); });
+/* colar uma imagem (Ctrl+V) na ficha ou no cadastro */
+document.addEventListener('paste', e => {
+  const files = soImagens(e.clipboardData && e.clipboardData.files);
+  if (!files.length || !fotosOk() || (isTextField(e.target) && e.clipboardData.getData('text'))) return;
+  const top = topDialog();
+  if (top === $('sheetMat') && smMode === 'detail') { e.preventDefault(); adicionarFotos(smId, files); }
+  else if (top === $('sheetNovo')) { e.preventDefault(); novoComFoto(files[0]); }
+});
+
+/* ---------- Câmera ou Galeria ---------- */
+let fotoCb = null, fotoSemCb = null, fotoMulti = false;
+/* no computador abre direto o seletor de arquivos; no celular, o painel com Câmera e Galeria */
+function pedirFotos(cb, { titulo = 'Adicionar foto', sem = null, multiplo = false, trigger } = {}) {
+  fotoCb = cb; fotoSemCb = sem; fotoMulti = multiplo;
+  if (!mqMob.matches && !coarse() && !sem) { abrirSeletor('galeria'); return; }
+  $('acaoTitulo').textContent = titulo;
+  $('acaoSem').hidden = !sem;
+  openDialog($('acaoFoto'), { trigger: trigger || document.activeElement, focus: $('acaoCamera') });
+}
+function abrirSeletor(tipo) {
+  const inp = $(tipo === 'camera' ? 'fotoCamera' : 'fotoGaleria');
+  inp.multiple = tipo === 'galeria' && fotoMulti;
+  inp.value = '';
+  /* com um diálogo modal aberto, o que fica fora dele é inerte: o seletor vai para a camada de cima */
+  const host = topDialog() || document.body;
+  if (inp.parentNode !== host) host.append(inp);
+  inp.click();
+}
+$('acaoCamera').addEventListener('click', () => { abrirSeletor('camera'); closeDialog($('acaoFoto')); });
+$('acaoGaleria').addEventListener('click', () => { abrirSeletor('galeria'); closeDialog($('acaoFoto')); });
+$('acaoSem').addEventListener('click', async () => {
+  const cb = fotoSemCb;
+  fotoCb = fotoSemCb = null;
+  await closeDialog($('acaoFoto'));
+  if (cb) cb();
+});
+$('acaoCancelar').addEventListener('click', () => { fotoCb = fotoSemCb = null; closeDialog($('acaoFoto')); });
+['fotoCamera', 'fotoGaleria'].forEach(id => $(id).addEventListener('change', e => {
+  const files = soImagens(e.target.files).length ? soImagens(e.target.files) : [...(e.target.files || [])];
+  e.target.value = '';
+  const cb = fotoCb;
+  fotoCb = fotoSemCb = null;
+  if (files.length && cb) cb(files);
+}));
+
+/* ---------- Foto no cadastro ---------- */
+let novoFoto = null, novoFotoSeq = 0;
+async function novoComFoto(file) {
+  if (!file) return;
+  const seq = ++novoFotoSeq;
+  $('cFotoBox').classList.add('ocupada');
+  try { const p = await prepararFoto(file); if (seq === novoFotoSeq) novoFoto = p; }
+  catch (e) { if (seq === novoFotoSeq) toast(erroFotoTexto(e), { error: true, dur: 6000 }); }
+  finally { if (seq === novoFotoSeq) { $('cFotoBox').classList.remove('ocupada'); renderNovoFoto(); } }
+}
+function renderNovoFoto() {
+  $('cFotoBox').hidden = !fotosOk() && !novoFoto;
+  const t = $('cFotoThumb');
+  t.className = 'thumb' + (novoFoto ? '' : ' vazio');
+  t.innerHTML = novoFoto ? `<img src="${esc(novoFoto.mini)}" alt="Foto do novo material">` : '<svg class="ico" aria-hidden="true"><use href="#i-photo"></use></svg>';
+  $('cFotoAdd').textContent = novoFoto ? 'Trocar foto' : 'Adicionar foto';
+  $('cFotoRem').hidden = !novoFoto;
+}
+$('cFotoAdd').addEventListener('click', e => pedirFotos(files => novoComFoto(files[0]), { trigger: e.currentTarget }));
+$('cFotoRem').addEventListener('click', () => { novoFoto = null; novoFotoSeq++; $('cFotoBox').classList.remove('ocupada'); renderNovoFoto(); $('cFotoAdd').focus(); });
 
 /* =====================================================================
    Backup: copiar, baixar, restaurar
@@ -3029,6 +3726,15 @@ $('miRestaurar').addEventListener('click', menuAction(openRestore));
 $('miExemplos').addEventListener('click', menuAction(excluirExemplos));
 $('miAcesso').addEventListener('click', menuAction(abrirAcesso));
 $('miSair').addEventListener('click', menuAction(sairConta));
+$('miTema').addEventListener('click', menuAction(() => { prefs.tema = prefs.tema === 'claro' ? 'escuro' : 'claro'; savePrefs(); aplicarTema(); }));
+function aplicarTema() {
+  const claro = prefs.tema === 'claro';
+  if (claro) root.dataset.theme = 'light'; else delete root.dataset.theme;
+  const mt = document.querySelector('meta[name="theme-color"]');
+  if (mt) mt.content = claro ? '#f2f2f7' : '#000000';
+  $('miTemaTx').textContent = claro ? 'Tema escuro' : 'Tema claro';
+  $('miTemaIco').setAttribute('href', claro ? '#i-moon' : '#i-sun');
+}
 
 /* =====================================================================
    Toast e desfazer
@@ -3053,7 +3759,7 @@ function announce(text) {
 function toast(main, { sub = '', nome = '', undo: withUndo = false, dur, error = false } = {}) {
   if (saveErrPending) { saveErrPending = false; main = 'Não foi possível salvar. Copie um backup.'; sub = ''; nome = ''; withUndo = false; error = true; dur = 6000; }
   if (!main) return;
-  if (!withUndo) undo = null;
+  if (!withUndo) { undo = null; limparFotosOrfas(); }
   toastHasUndo = withUndo;
   clearTimeout(toastTimer);
   placeToast(false);
@@ -3077,7 +3783,7 @@ function toastPause() { clearTimeout(toastTimer); toastLeft = Math.max(1500, toa
 function hideToast() {
   clearTimeout(toastTimer);
   toastEl.classList.remove('in');
-  if (toastHasUndo) undo = null;
+  if (toastHasUndo) { undo = null; limparFotosOrfas(); }
   toastHasUndo = false;
   setTimeout(() => {
     if (toastEl.classList.contains('in')) return;
@@ -3095,10 +3801,14 @@ $('toastAcao').title = `Desfazer (${/Mac|iPhone|iPad/i.test(navigator.platform |
 function doUndo() {
   const fromToast = document.activeElement === $('toastAcao');
   if (!undo || ver !== undo.ver + 1) { hideToast(); return; }
+  const antes = db.materiais.map(m => m.id);
   db = undo.snap;
   undo = null;
   ver++;
   save();
+  /* desfazer um cadastro: a foto que veio com ele não tem mais material (não há refazer) */
+  for (const id of antes) if (!matById(id)) fotosOrfas.set(id, null);
+  limparFotosOrfas();
   if (regMatId && !db.materiais.some(m => m.id === regMatId)) { regMatId = null; $('rMat').value = ''; }
   histMatVer = -1;
   renderAll();
@@ -3293,8 +4003,9 @@ function entrou(u) {
 }
 function saiu() {
   pararAssinaturas();
-  me = null; isAdmin = false; acessoDoc = null; carregou = false;
+  me = null; isAdmin = false; acessoDoc = null; carregou = false; fotosVarridas = false;
   enviado.mats.clear(); enviado.movs.clear(); enviado.seq = 0;
+  fotosOrfas.clear(); fotosLimpar('carregando');
   for (const d of DIALOGS) if (d.open) d.close();
   db = bancoVazio(); ver++; undo = null; histMatVer = -1;
   regMatId = null; $('rMat').value = '';
@@ -3326,7 +4037,11 @@ async function entrarGoogle() {
 async function sairConta(trigger) {
   if (!fauth || !me) return;
   const ok = await confirmar({ titulo: 'Sair da conta?', msg: me.email, okTexto: 'Sair', okTipo: 'accent', trigger });
-  if (ok) fb.signOut(fauth);
+  if (!ok) return;
+  /* fotos de material excluído agora há pouco: apaga antes de perder a permissão (o Desfazer acaba aqui) */
+  undo = null;
+  await Promise.race([limparFotosOrfas(true), new Promise(r => setTimeout(r, 3000))]);
+  fb.signOut(fauth);
 }
 
 /* ---------- Tela de entrada (cobre o app até os dados chegarem) ---------- */
@@ -3371,6 +4086,7 @@ $('gateTrocar').addEventListener('click', () => { if (fauth) fb.signOut(fauth); 
 function pararAssinaturas() {
   assinaturas.forEach(parar => parar());
   assinaturas = [];
+  if (fotosParar) { fotosParar(); fotosParar = null; }
   clearTimeout(aplicarTimer);
   remoto.ok = {}; remoto.pend = {}; remoto.cache = {};
 }
@@ -3382,6 +4098,7 @@ function assinar() {
     recebido(chave, s.metadata);
   }, erroLeitura);
   assinaturas.push(lista('materiais', 'mats'), lista('movs', 'movs'));
+  fotosAssinar();
   assinaturas.push(fb.onSnapshot(fb.doc(fstore, 'meta', 'estado'), meta, s => {
     remoto.seq = s.exists() ? Number(s.data().seq) || 0 : 0;
     recebido('meta', s.metadata);
@@ -3422,10 +4139,11 @@ function aplicarRemoto() {
   /* o eco das próprias gravações não redesenha nem tira o Desfazer */
   if (!primeira && canonico(novo) === canonico(db)) return;
   db = novo; ver++; undo = null; histMatVer = -1;
+  limparFotosOrfas();
   if (regMatId && !db.materiais.some(m => m.id === regMatId)) { regMatId = null; $('rMat').value = ''; }
   renderAll();
   verImportacao();
-  if (primeira) { telaEntrada(null); return; }
+  if (primeira) { telaEntrada(null); setTimeout(varrerFotosOrfas, 20000); return; }
   if ($('sheetMat').open && !matById(smId)) { closeDialog($('sheetMat')); toast('Este material foi excluído por outra pessoa'); return; }
   refreshSheets();
 }
@@ -3433,6 +4151,7 @@ function erroLeitura(e) {
   pararAssinaturas();
   carregou = false;
   db = bancoVazio(); ver++; undo = null; histMatVer = -1;
+  fotosOrfas.clear(); fotosLimpar('carregando');
   for (const d of DIALOGS) if (d.open) d.close();
   renderAll();
   if (e && e.code === 'permission-denied') telaEntrada('semAcesso');
@@ -3608,7 +4327,11 @@ if (nuvem) {
   if (corruptRaw !== null) $('corruptWarn').hidden = false;
 }
 regTipo = prefs.tipo;
+aplicarTema();
 filtroEst.set(prefs.filtroEst);
+vistaRG.set(prefs.vista);
+fotosBackend = nuvem ? fotosNuvem : fotosLocal;
+if (!nuvem) fotosLocal.assinar();
 $('rResp').value = prefs.resp;
 renderGlobal();
 setTab(prefs.aba, { initial: true });

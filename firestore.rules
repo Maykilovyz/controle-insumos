@@ -7,6 +7,7 @@ rules_version = '2';
 // - Dono e e-mails em config/acesso.admins: tudo, inclusive liberar pessoas, excluir materiais e restaurar backup.
 // - E-mails em config/acesso.editores: ver, cadastrar e editar materiais, registrar e excluir os próprios registros.
 // - Se config/acesso.aberto == true: qualquer conta Google verificada tem o mesmo acesso de editor.
+// - Fotos: quem tem acesso adiciona; só quem enviou (ou um admin) apaga.
 // - Ninguém sem login lê ou grava nada.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -58,6 +59,22 @@ service cloud.firestore {
         && texto(d.resp, 200)
         && texto(d.obs, 500);
     }
+    // Fotos já chegam reduzidas e em JPEG: miniatura de até ~60 mil caracteres, imagem de até ~900 mil.
+    function fotoValida(d) {
+      return d.keys().hasOnly(['mat', 'mini', 'w', 'h', 'criado', 'por'])
+        && texto(d.mat, 100) && d.mat.size() > 0
+        && d.mini is string && d.mini.size() <= 80000 && d.mini.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+')
+        && d.w is int && d.w > 0 && d.w <= 4096
+        && d.h is int && d.h > 0 && d.h <= 4096
+        && texto(d.criado, 25)
+        && texto(d.por, 200);
+    }
+    function imagemValida(d) {
+      return d.keys().hasOnly(['mat', 'img', 'por'])
+        && texto(d.mat, 100) && d.mat.size() > 0
+        && d.img is string && d.img.size() <= 1000000 && d.img.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+')
+        && texto(d.por, 200);
+    }
 
     // Lista de quem tem acesso: só admin lê e altera (os e-mails não ficam expostos).
     match /config/acesso {
@@ -78,6 +95,26 @@ service cloud.firestore {
       allow create: if membro() && movValido(request.resource.data)
         && (admin() || request.resource.data.get('por', '') == eu());
       allow update: if admin() && movValido(request.resource.data);
+      allow delete: if admin() || (membro() && resource.data.get('por', '') == eu());
+    }
+
+    // Fotos dos materiais: a miniatura em fotos/{id} (lida em tempo real) e a imagem grande em imagens/{id}
+    // (lida quando alguém abre a galeria). Não se alteram: só são criadas e apagadas.
+    // As duas são gravadas juntas (mesmo lote, mesmo id) e só para um material que existe.
+    match /fotos/{id} {
+      allow read: if membro();
+      allow create: if membro() && fotoValida(request.resource.data)
+        && (admin() || request.resource.data.por == eu())
+        && existsAfter(/databases/$(database)/documents/materiais/$(request.resource.data.mat))
+        && getAfter(/databases/$(database)/documents/imagens/$(id)).data.mat == request.resource.data.mat;
+      allow delete: if admin() || (membro() && resource.data.get('por', '') == eu());
+    }
+    match /imagens/{id} {
+      allow read: if membro();
+      allow create: if membro() && imagemValida(request.resource.data)
+        && (admin() || request.resource.data.por == eu())
+        && getAfter(/databases/$(database)/documents/fotos/$(id)).data.mat == request.resource.data.mat
+        && getAfter(/databases/$(database)/documents/fotos/$(id)).data.por == request.resource.data.por;
       allow delete: if admin() || (membro() && resource.data.get('por', '') == eu());
     }
 

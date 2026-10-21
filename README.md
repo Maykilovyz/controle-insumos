@@ -6,13 +6,15 @@ Link: https://maykilovyz.github.io/controle-insumos/
 
 ## Funcionalidades
 - Estoque com busca e a aba **Faltando**: o que está com alguém, o que zerou e o que está abaixo do mínimo
+- Fotos dos materiais: no computador, grade com miniaturas (ou lista, no botão ao lado do filtro) e galeria ao abrir o material; no celular, lista com a miniatura à esquerda e o **+** abre Câmera ou Galeria
+- Tema escuro por padrão (fundo preto, cartões cinza-escuros, vidro só em folhas, menus e avisos); tema claro no menu `…`
 - Registro de saída, devolução e entrada com quantidade, responsável, observação e data
 - Devolução em um toque: Registrar → Devolução mostra quem está com o quê, com o botão Devolver (e "Não vai voltar" para item perdido ou quebrado)
 - Material de consumo (pilha, fita, papel): a saída não espera devolução
 - Histórico por dia, com filtros
 - Cadastro de materiais com código automático (MAT-001…)
 - Desfazer logo depois de qualquer mudança
-- Backup (copiar ou baixar JSON) e restauração
+- Backup (copiar ou baixar JSON) e restauração (o backup não inclui as fotos)
 - Login com Google e lista de quem pode registrar
 - Sincronização em tempo real entre todos; funciona sem internet e envia quando a conexão volta
 
@@ -28,6 +30,15 @@ Para liberar alguém: menu `…` → **Pessoas com acesso** → digite o e-mail 
 
 ### Como o "com alguém" é calculado
 Não há tabela de empréstimos: tudo sai do histórico. Cada saída de um material que volta para a sala fica com a pessoa que pegou até voltar. Conta como devolução a entrada feita pelo botão Devolver (`dev: true`) ou uma entrada comum da mesma pessoa (mesmo nome, sem diferença de maiúsculas e acentos) registrada depois da saída. Uma entrada maior do que o que a pessoa tem fecha o que está com ela e o resto vai para o estoque, sem virar crédito para a próxima saída. Item perdido ou quebrado se fecha com **Não vai voltar** (`baixa: true`): sai da lista de quem está com o quê sem mexer no estoque. Material marcado como de consumo (`consumo: true`) e ajustes de contagem (`ajuste: true`) não geram pendência. Esses campos extras não exigem mudar as regras do Firestore.
+
+### Fotos
+As fotos são reduzidas no próprio aparelho antes de enviar: imagem de até 1280 px em JPEG (cerca de 150 a 600 KB) e uma miniatura de 320 px. Ficam no Firestore, sem usar o Firebase Storage:
+- `fotos/{id}`: miniatura, tamanho e quem enviou (`mat`, `mini`, `w`, `h`, `criado`, `por`), lida em tempo real para mostrar as miniaturas.
+- `imagens/{id}`: a imagem grande (`mat`, `img`, `por`), lida só quando alguém abre a galeria.
+
+Até 8 fotos por material. A capa é a escolhida em **Usar como capa** (campo `capa` do material) ou a mais antiga. Quem tem acesso adiciona; só quem enviou ou um administrador apaga. As regras só aceitam a miniatura e a imagem gravadas juntas e para um material que existe. Quando um material sai (excluído, exemplos apagados, backup restaurado sem ele, cadastro desfeito), as fotos dele são apagadas assim que o Desfazer some. O que sobrar (aba fechada antes disso, por exemplo) um administrador apaga sozinho ao abrir o site, se tiver mais de um dia. O fundo cinza-claro atrás das fotos é proposital: peças pretas (Arduino, motores, sensores) não somem no tema escuro.
+
+Sem as regras novas publicadas no console, o resto do site funciona e as fotos aparecem como indisponíveis. No modo local (sem Firebase) as fotos ficam no IndexedDB do navegador.
 
 ### Mudar as regras
 1. Edite `firestore.rules`.

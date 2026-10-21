@@ -1,6 +1,6 @@
 // Uso (na raiz do repositório): npm run test:regras
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import fs from 'node:fs';
 
 const DONO = 'dono.teste@gmail.com';
@@ -55,6 +55,36 @@ await t('editor registra devolução', assertSucceeds(setDoc(doc(as('ed@gmail.co
 await t('admin exclui material', assertSucceeds(deleteDoc(doc(as('adm@gmail.com'), 'materiais/m2'))));
 await t('admin apaga registro antigo sem autor', assertSucceeds(setDoc(doc(as('adm@gmail.com'), 'movs/old'), (({ por, ...r }) => r)(mov)).then(() => deleteDoc(doc(as('adm@gmail.com'), 'movs/old')))));
 await setDoc(doc(as('adm@gmail.com'), 'movs/v6'), mov);
+
+console.log('# fotos');
+const b64 = n => 'A'.repeat(n);
+const mini = 'data:image/jpeg;base64,' + b64(20000);
+const foto = { mat: 'm1', mini, w: 1280, h: 960, criado: '2026-10-21T08:30', por: 'ed@gmail.com' };
+const imagem = { mat: 'm1', img: 'data:image/jpeg;base64,' + b64(880000), por: 'ed@gmail.com' };
+// o app grava a miniatura e a imagem no mesmo lote
+const par = (id, f = foto, i = imagem, quem = 'ed@gmail.com') => { const db = as(quem), b = writeBatch(db); b.set(doc(db, 'fotos/' + id), f); b.set(doc(db, 'imagens/' + id), i); return b.commit(); };
+await t('editor envia foto (miniatura + imagem de ~900 mil caracteres)', assertSucceeds(par('f1')));
+await t('miniatura sem a imagem recusada', assertFails(setDoc(doc(as('ed@gmail.com'), 'fotos/f9'), foto)));
+await t('imagem sem a miniatura recusada', assertFails(setDoc(doc(as('ed@gmail.com'), 'imagens/f9'), imagem)));
+await t('foto de material que não existe recusada', assertFails(par('f9', { ...foto, mat: 'nada' }, { ...imagem, mat: 'nada' })));
+await t('miniatura e imagem de materiais diferentes recusadas', assertFails(par('f9', foto, { ...imagem, mat: 'm3' })));
+await t('editor lê foto', assertSucceeds(getDoc(doc(as('ed@gmail.com'), 'imagens/f1'))));
+await t('estranho não lê fotos', assertFails(getDoc(doc(as('x@gmail.com'), 'fotos/f1'))));
+await t('anônimo não lê imagens', assertFails(getDoc(doc(anon, 'imagens/f1'))));
+await t('editor não envia foto em nome de outro', assertFails(par('f2', { ...foto, por: 'novo@gmail.com' }, { ...imagem, por: 'novo@gmail.com' })));
+await t('foto que não é JPEG recusada', assertFails(par('f2', { ...foto, mini: 'data:image/svg+xml;base64,' + b64(100) })));
+await t('foto com texto qualquer recusada', assertFails(par('f2', { ...foto, mini: 'javascript:alert(1)' })));
+await t('miniatura grande demais recusada', assertFails(par('f2', { ...foto, mini: 'data:image/jpeg;base64,' + b64(90000) })));
+await t('imagem grande demais recusada', assertFails(par('f2', foto, { ...imagem, img: 'data:image/jpeg;base64,' + b64(1000001) })));
+await t('foto com campo extra recusada', assertFails(par('f2', { ...foto, extra: 1 })));
+await t('foto com largura em texto recusada', assertFails(par('f2', { ...foto, w: '1280' })));
+await t('foto não se altera', assertFails(setDoc(doc(as('ed@gmail.com'), 'fotos/f1'), { ...foto, w: 640 })));
+await t('outro editor não apaga foto alheia', assertFails(deleteDoc(doc(as('novo@gmail.com'), 'fotos/f1'))));
+await t('quem enviou apaga a foto', assertSucceeds(deleteDoc(doc(as('ed@gmail.com'), 'fotos/f1')).then(() => deleteDoc(doc(as('ed@gmail.com'), 'imagens/f1')))));
+await par('f3');
+await t('admin apaga foto de outra pessoa', assertSucceeds(deleteDoc(doc(as('adm@gmail.com'), 'fotos/f3')).then(() => deleteDoc(doc(as('adm@gmail.com'), 'imagens/f3')))));
+await t('mesma foto válida passa (controle dos testes acima)', assertSucceeds(par('f2')));
+await t('editor marca a capa no material', assertSucceeds(setDoc(doc(as('ed@gmail.com'), 'materiais/m1'), { ...mat, local: 'Armário 3', capa: 'f1' })));
 console.log('# validação');
 await t('qtd negativa recusada', assertFails(setDoc(doc(as('ed@gmail.com'), 'movs/v3'), { ...mov, qtd: -1 })));
 await t('tipo inválido recusado', assertFails(setDoc(doc(as('ed@gmail.com'), 'movs/v3'), { ...mov, tipo: 'x' })));

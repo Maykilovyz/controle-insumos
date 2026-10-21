@@ -107,7 +107,7 @@ async function limparBanco() {
   await B.pg.keyboard.press('Escape'); await idle(B.pg);
 
   console.log('# 4. Editor registra uma saída; o dono vê na hora');
-  await B.pg.click('#estGroup .row:has-text("Motor DC 6V")'); await idle(B.pg);
+  await B.pg.click('#estGroup [data-i]:has-text("Motor DC 6V")'); await idle(B.pg);
   t(await B.pg.isHidden('#smExcluir'), 'editor não vê Excluir material');
   await B.pg.fill('#smQtd', '2'); await B.pg.fill('#smResp', 'Ana (9º A)');
   await B.pg.click('#smSubmit'); await idle(B.pg);
@@ -121,7 +121,7 @@ async function limparBanco() {
   t(await ate(async () => (await saldo(A.pg, 'Motor DC 6V')) === 7), 'desfazer volta o saldo para 7 no dono');
 
   console.log('# 6. Permissões de exclusão');
-  await B.pg.click('#estGroup .row:has-text("Motor DC 6V")'); await idle(B.pg);
+  await B.pg.click('#estGroup [data-i]:has-text("Motor DC 6V")'); await idle(B.pg);
   await B.pg.fill('#smQtd', '1'); await B.pg.fill('#smResp', 'Bruno');
   await B.pg.click('#smSubmit'); await idle(B.pg, 800);
   await B.pg.click('[role=tab]#tab-historico'); await idle(B.pg);
@@ -139,7 +139,7 @@ async function limparBanco() {
   t((await rest('materiais')).length === 2, 'material continua no banco');
 
   console.log('# 7. Dono exclui material; editor vê sumir');
-  await A.pg.click('#estGroup .row:has-text("Servo SG90")'); await idle(A.pg);
+  await A.pg.click('#estGroup [data-i]:has-text("Servo SG90")'); await idle(A.pg);
   t(await A.pg.isVisible('#smExcluir'), 'dono vê Excluir material');
   await A.pg.click('#smExcluir'); await idle(A.pg); await A.pg.click('#alertOk'); await idle(A.pg);
   t(await ate(async () => !(await DB(B.pg)).materiais.some(m => m.nome === 'Servo SG90')), 'editor vê o material sumir');
@@ -148,7 +148,7 @@ async function limparBanco() {
   console.log('# 8. Sem internet no editor');
   await B.ctx.setOffline(true); await B.pg.evaluate(() => dispatchEvent(new Event('offline')));
   await B.pg.click('[role=tab]#tab-estoque'); await idle(B.pg);
-  await B.pg.click('#estGroup .row:has-text("Motor DC 6V")'); await idle(B.pg);
+  await B.pg.click('#estGroup [data-i]:has-text("Motor DC 6V")'); await idle(B.pg);
   await B.pg.fill('#smQtd', '1'); await B.pg.fill('#smResp', 'Offline');
   await B.pg.click('#smSubmit'); await idle(B.pg, 600);
   t((await B.pg.textContent('#footText')).includes('Sem internet'), 'rodapé avisa que está sem internet', await B.pg.textContent('#footText'));
@@ -169,7 +169,7 @@ async function limparBanco() {
   t(await ate(async () => { const a = await DB(A.pg), bb = await DB(B.pg); return ['Simultâneo A', 'Simultâneo B'].every(r => a.movs.some(v => v.resp === r) && bb.movs.some(v => v.resp === r)); }), 'as duas telas mostram os dois');
 
   console.log('# 9b. Faltando e devolução em tempo real');
-  const linhaMotor = async pg => (await pg.textContent('#estGroup .row:has-text("Motor DC 6V")')).replace(/ /g, ' ');
+  const linhaMotor = async pg => (await pg.textContent('#estGroup [data-i]:has-text("Motor DC 6V")')).replace(/ /g, ' ');
   await A.pg.click('[role=tab]#tab-estoque'); await idle(A.pg);
   await A.pg.click('#fEstFalta'); await idle(A.pg);
   t(await ate(async () => (await linhaMotor(A.pg)).includes('5 un com 3 pessoas')), 'dono vê em Faltando: 5 un com 3 pessoas', await linhaMotor(A.pg).catch(() => ''));
@@ -186,7 +186,7 @@ async function limparBanco() {
   t((await B.pg.$$('#rDevList .dev-btn')).length === 2, 'lista do editor fica com 2');
   // editor marca o material como de consumo (pode editar material); dono vê sair de Faltando; desfazer volta
   await B.pg.click('[role=tab]#tab-estoque'); await idle(B.pg);
-  await B.pg.click('#estGroup .row:has-text("Motor DC 6V")'); await idle(B.pg);
+  await B.pg.click('#estGroup [data-i]:has-text("Motor DC 6V")'); await idle(B.pg);
   await B.pg.click('#smConsumo'); await idle(B.pg);
   t(await ate(async () => (await rest('materiais')).some(d => d.f.nome.stringValue === 'Motor DC 6V' && d.f.consumo?.booleanValue === true)), 'material de consumo salvo no banco');
   t(await ate(async () => (await A.pg.textContent('#estGroup')).includes('Nada faltando')), 'dono: Faltando fica vazio', await A.pg.textContent('#estGroup'));
@@ -195,6 +195,45 @@ async function limparBanco() {
   t(await ate(async () => (await linhaMotor(A.pg)).includes('2 un com 2 pessoas')), 'dono vê o motor de volta em Faltando');
   if (await B.pg.$eval('#sheetMat', x => x.open)) { await B.pg.click('#smFechar'); await idle(B.pg); }
   await A.pg.click('#fEstTodos'); await idle(A.pg);
+
+  console.log('# 9c. Fotos');
+  const jpg = Buffer.from((await A.pg.evaluate(() => { const c = document.createElement('canvas'); c.width = 1600; c.height = 1200; const x = c.getContext('2d'); x.fillStyle = '#123'; x.fillRect(0, 0, 1600, 1200); x.fillStyle = '#e33'; x.fillRect(400, 300, 800, 600); return c.toDataURL('image/jpeg', 0.9); })).split(',')[1], 'base64');
+  // editor (celular) adiciona pela ficha: o botão abre Câmera e Galeria
+  await B.pg.click('[role=tab]#tab-estoque'); await idle(B.pg);
+  await B.pg.click('#estGroup [data-i]:has-text("Motor DC 6V")'); await idle(B.pg);
+  t(await ate(() => B.pg.isVisible('#smGalVazio')), 'ficha sem foto oferece Adicionar foto');
+  await B.pg.click('#smGalVazio'); await idle(B.pg);
+  t(await B.pg.isVisible('#acaoCamera') && await B.pg.isVisible('#acaoGaleria'), 'celular: painel com Câmera e Galeria');
+  const [fc] = await Promise.all([B.pg.waitForEvent('filechooser'), B.pg.click('#acaoGaleria')]);
+  await fc.setFiles({ name: 'motor.jpg', mimeType: 'image/jpeg', buffer: jpg });
+  t(await ate(async () => (await rest('fotos')).length === 1 && (await rest('imagens')).length === 1), 'foto e imagem chegam ao banco');
+  const fsrv = (await rest('fotos'))[0];
+  t(fsrv && fsrv.f.por.stringValue === ED && fsrv.f.mini.stringValue.startsWith('data:image/jpeg;base64,') && fsrv.f.w.integerValue === '1280', 'foto guarda autor, miniatura JPEG e 1280 px', fsrv && { por: fsrv.f.por, w: fsrv.f.w });
+  t(await ate(() => A.pg.evaluate(() => !!document.querySelector('#estGroup [data-i] .thumb img'))), 'dono vê a miniatura no card na hora');
+  // dono abre a galeria: a imagem grande vem do banco só agora
+  await A.pg.click('#estGroup [data-i]:has-text("Motor DC 6V")'); await idle(A.pg);
+  t(await ate(() => A.pg.evaluate(() => fotos.grandes.size === 1 && document.querySelector('#smGalStage img').src.startsWith('blob:'))), 'dono carrega a imagem grande ao abrir a galeria');
+  t(await A.pg.isVisible('#smGalExcluir'), 'dono (admin) pode excluir a foto de outra pessoa');
+  t(await B.pg.isVisible('#smGalExcluir'), 'quem enviou pode excluir a própria foto');
+  await A.pg.click('#smGalExcluir'); await idle(A.pg); await A.pg.click('#alertOk'); await idle(A.pg);
+  t(await ate(async () => (await rest('fotos')).length === 0 && (await rest('imagens')).length === 0), 'excluir apaga foto e imagem do banco');
+  t(await ate(() => B.pg.evaluate(() => !document.querySelector('#smGalStage img') && !document.getElementById('smGalVazio').hidden)), 'editor vê a foto sumir da ficha aberta');
+  await A.pg.click('#smFechar'); await idle(A.pg);
+  await B.pg.click('#smFechar'); await idle(B.pg);
+  // computador: o seletor abre direto; material novo já com foto; excluído, a foto vai junto (depois do Desfazer)
+  await A.pg.click('#btnNovo'); await idle(A.pg);
+  const [fc2] = await Promise.all([A.pg.waitForEvent('filechooser'), A.pg.click('#cFotoAdd')]);
+  await fc2.setFiles({ name: 'kit.jpg', mimeType: 'image/jpeg', buffer: jpg });
+  t(await ate(() => A.pg.evaluate(() => !!document.querySelector('#cFotoThumb img'))), 'cadastro mostra a foto escolhida');
+  await A.pg.fill('#cNome', 'Kit LEGO'); await A.pg.click('#cCadastrar'); await idle(A.pg);
+  t(await ate(async () => (await rest('fotos')).length === 1 && (await rest('materiais')).some(d => d.f.nome.stringValue === 'Kit LEGO')), 'material novo e foto chegam ao banco');
+  t(await ate(() => B.pg.evaluate(() => { const m = db.materiais.find(x => x.nome === 'Kit LEGO'); return !!m && !!capaDe(m); })), 'editor recebe o material com a foto');
+  await A.pg.click('#estGroup [data-i]:has-text("Kit LEGO")'); await idle(A.pg);
+  await A.pg.click('#smExcluir'); await idle(A.pg);
+  t((await A.pg.textContent('#alertMsg')).includes('a foto'), 'confirmação avisa que a foto vai junto', await A.pg.textContent('#alertMsg'));
+  await A.pg.click('#alertOk'); await idle(A.pg);
+  t((await rest('fotos')).length === 1, 'a foto espera o Desfazer expirar');
+  t(await ate(async () => (await rest('fotos')).length === 0 && (await rest('imagens')).length === 0, 12000), 'depois do Desfazer, a foto do material excluído sai do banco');
 
   console.log('# 10. Liberar para qualquer conta Google');
   const C = await abrir('estranho');
