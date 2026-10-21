@@ -31,7 +31,7 @@
   --chrome-surface:rgba(255,255,255,.72); --chrome-surface-solid:#ffffff;
   --sheet-chrome:rgba(242,242,247,.72); --sheet-chrome-solid:#f2f2f7;
   --material:rgba(250,250,252,.82); --material-solid:#fafafc;
-  --scrim:rgba(0,0,0,.24);
+  --scrim:rgba(0,0,0,.24); --knob:#ffffff;
   --shadow-float:0 0 0 .5px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.12);
   color-scheme:light;
 }
@@ -646,6 +646,38 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
   dialog::backdrop{transition-duration:.01ms!important}
 }
+/* =====================================================================
+   Banco compartilhado: entrada, pessoas com acesso, sincronização
+   ===================================================================== */
+.gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;overflow-y:auto;padding-block:max(var(--s4),env(safe-area-inset-top,0px)) max(var(--s4),env(safe-area-inset-bottom,0px));padding-left:max(var(--s4),env(safe-area-inset-left,0px));padding-right:max(var(--s4),env(safe-area-inset-right,0px));background:var(--chrome);-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px)}
+.gate-card{display:flex;flex-direction:column;align-items:center;gap:var(--s3);width:100%;max-width:360px;padding:var(--s7) var(--s6) var(--s6);border-radius:16px;background:var(--surface);box-shadow:var(--shadow-float);text-align:center}
+.gate-card:focus{outline:none}
+.gate-ico{width:36px;height:36px;color:var(--accent);stroke-width:1.5}
+.gate-title{margin:0;font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.gate-msg{margin:0;color:var(--label-2);font-size:var(--fs-sub);line-height:var(--lh-sub);text-wrap:balance}
+.gate-email{margin:0;padding:6px 10px;border-radius:8px;background:var(--fill);font-size:var(--fs-sub);line-height:var(--lh-sub);overflow-wrap:anywhere}
+.gate-acts{display:flex;flex-direction:column;align-items:stretch;gap:var(--s2);width:100%;margin-top:var(--s2)}
+.gate-acts .btn{height:44px;font-size:var(--fs-body);font-weight:600}
+.gate-acts .btn-text{justify-content:center;height:40px}
+.gate-hint{margin:0;color:var(--label-2);font-size:var(--fs-cap);line-height:var(--lh-cap);text-wrap:pretty}
+.gate-hint.err{color:var(--danger)}
+.spinner{width:20px;height:20px;border:2px solid var(--fill-2);border-top-color:var(--label-2);border-radius:50%;animation:spin 800ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.acc-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--s3)}
+.acc-row .em{overflow-wrap:anywhere}
+.acc-row .btn-text{margin-right:calc(-1*var(--s2))}
+.acc-vazio{color:var(--label-2)}
+.field.switch-row{grid-template-columns:minmax(0,1fr) auto;cursor:pointer}
+.field .switch{position:relative;flex:none;width:51px;height:31px;margin:0;padding:0;border-radius:999px;background:var(--fill-2);cursor:pointer;transition:background 200ms var(--ease)}
+.field .switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:var(--knob);box-shadow:var(--shadow-thumb);transition:transform 200ms var(--ease)}
+.field .switch:checked{background:var(--ok)}
+.field .switch:checked::after{transform:translateX(20px)}
+.field .switch:focus-visible{box-shadow:0 0 0 2px var(--focus-ring)}
+.sync-dot{display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--ok);vertical-align:1px}
+.sync-dot.wait{background:var(--label-3)}
+.sync-dot.off{background:var(--warn)}
+@media (prefers-reduced-motion: reduce){.spinner{animation:none}.field .switch,.field .switch::after{transition:none}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.gate{background:var(--bg)}}
 </style>
 </head>
 <body>
@@ -655,6 +687,8 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   <symbol id="i-arrows" viewBox="0 0 24 24"><path d="M8 19V5M4.5 8.5 8 5l3.5 3.5M16 5v14M12.5 15.5 16 19l3.5-3.5"></path></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></symbol>
+  <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.25"></circle><path d="M3.5 19c.6-3.1 2.8-5 5.5-5s4.9 1.9 5.5 5"></path><path d="M15.5 5.6a3.25 3.25 0 0 1 0 5.8M17.5 14.4c1.6.7 2.7 2.3 3 4.6"></path></symbol>
+  <symbol id="i-signout" viewBox="0 0 24 24"><path d="M14 4.5H7.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H14M10.5 12h10M17 8.5l3.5 3.5-3.5 3.5"></path></symbol>
   <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"></path></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"></circle><path d="m15 15 4.5 4.5"></path></symbol>
   <symbol id="i-xmark-fill" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20zM9.24 7.96 12 10.72l2.76-2.76 1.28 1.28L13.28 12l2.76 2.76-1.28 1.28L12 13.28l-2.76 2.76-1.28-1.28L10.72 12 7.96 9.24z"></path></symbol>
@@ -706,6 +740,11 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
       <svg class="ico" aria-hidden="true"><use href="#i-info"></use></svg>
       <span class="banner-text"><span class="only-wide">Estes são dados de exemplo.</span><span class="only-mob">Dados de exemplo.</span></span>
       <span class="banner-acts"><button type="button" class="btn-text" id="btnDemoExcluir">Excluir exemplos</button></span>
+    </div>
+    <div class="banner info" id="importBanner" hidden>
+      <svg class="ico" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <span class="banner-text" id="importText"></span>
+      <span class="banner-acts"><button type="button" class="btn-text" id="btnImportar">Enviar para o banco</button><button type="button" class="btn-text" id="btnImportarNao">Agora não</button></span>
     </div>
     <div class="toolbar" id="estToolbar">
       <div class="search" id="fEstBuscaWrap">
@@ -977,6 +1016,35 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   </div>
 </dialog>
 
+<!-- Folha Pessoas com acesso (administradores, banco compartilhado) -->
+<dialog class="sheet" id="sheetAcesso" aria-labelledby="saTitle">
+  <div class="sheet-head">
+    <button type="button" class="btn-text start" id="saFechar">Fechar</button>
+    <h2 class="sheet-title t-headline" id="saTitle" tabindex="-1">Pessoas com acesso</h2>
+    <span class="end"></span>
+  </div>
+  <div class="sheet-body">
+    <form id="formAcesso" novalidate>
+      <div class="group">
+        <div class="field"><label for="aEmail">E-mail</label><input id="aEmail" type="email" placeholder="nome@gmail.com" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></div>
+        <div class="field"><label for="aPapel">Pode</label><select id="aPapel"><option value="editores">Registrar</option><option value="admins">Administrar</option></select><svg class="ico" aria-hidden="true"><use href="#i-chevrons"></use></svg></div>
+      </div>
+      <p class="group-foot err" id="aErr" hidden></p>
+      <div class="sheet-actions"><button type="submit" class="btn btn-primary btn-md btn-lg btn-block" id="aLiberar">Liberar acesso</button></div>
+    </form>
+    <h3 class="section-label">Podem registrar</h3>
+    <div class="group" id="aEditores"></div>
+    <p class="group-foot">Veem o estoque, cadastram materiais e registram entradas e saídas. Só apagam os próprios registros.</p>
+    <h3 class="section-label">Administradores</h3>
+    <div class="group" id="aAdmins"></div>
+    <p class="group-foot">Também liberam pessoas, excluem materiais e restauram backup. O dono definido nas regras do Firebase sempre tem acesso.</p>
+    <div class="group" style="margin-top:var(--s6)">
+      <label class="field switch-row" for="aAberto"><span class="flabel">Qualquer conta Google pode registrar</span><input type="checkbox" class="switch" role="switch" id="aAberto"></label>
+    </div>
+    <p class="group-foot" id="aAbertoNota">Desligado: só os e-mails acima entram.</p>
+  </div>
+</dialog>
+
 <!-- Alerta único -->
 <dialog class="alert" id="alertDlg" role="alertdialog" aria-labelledby="alertTitle" aria-describedby="alertMsg">
   <h2 class="alert-title" id="alertTitle"></h2>
@@ -1001,8 +1069,27 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   <button type="button" role="menuitem" id="miRestaurar" tabindex="-1"><span>Restaurar backup…</span><svg class="ico" aria-hidden="true"><use href="#i-upload"></use></svg></button>
   <div class="menu-sep" role="separator" id="miSepEx"></div>
   <button type="button" role="menuitem" class="danger" id="miExemplos" tabindex="-1"><span>Excluir dados de exemplo…</span><svg class="ico" aria-hidden="true"><use href="#i-trash"></use></svg></button>
+  <div class="menu-sep" role="separator" id="miSepConta" hidden></div>
+  <button type="button" role="menuitem" id="miAcesso" tabindex="-1" hidden><span>Pessoas com acesso…</span><svg class="ico" aria-hidden="true"><use href="#i-people"></use></svg></button>
+  <button type="button" role="menuitem" id="miSair" tabindex="-1" hidden><span>Sair</span><svg class="ico" aria-hidden="true"><use href="#i-signout"></use></svg></button>
   <div class="menu-sep" role="separator"></div>
   <p class="menu-note" id="menuNote" role="none">Os dados ficam salvos só neste navegador. Último backup: nunca.</p>
+</div>
+
+<div class="gate" id="gate" hidden>
+  <div class="gate-card" id="gateCard" role="dialog" aria-modal="true" aria-labelledby="gateTitle" aria-describedby="gateMsg" tabindex="-1">
+    <svg class="ico gate-ico" aria-hidden="true"><use href="#i-box"></use></svg>
+    <h2 class="gate-title" id="gateTitle">Almoxarifado da Sala</h2>
+    <p class="gate-msg" id="gateMsg">Carregando…</p>
+    <div class="spinner" id="gateSpin" aria-hidden="true"></div>
+    <p class="gate-email" id="gateEmail" hidden></p>
+    <div class="gate-acts">
+      <button type="button" class="btn btn-primary" id="gateEntrar" hidden>Entrar com Google</button>
+      <button type="button" class="btn btn-secondary" id="gateTentar" hidden>Tentar de novo</button>
+      <button type="button" class="btn-text" id="gateTrocar" hidden>Usar outra conta</button>
+    </div>
+    <p class="gate-hint" id="gateHint" role="status"></p>
+  </div>
 </div>
 
 <div class="toast" id="toast" popover="manual"><span id="toastMsg"></span><button type="button" id="toastAcao" hidden>Desfazer</button></div>
@@ -1043,6 +1130,23 @@ const hasPopover = Object.prototype.hasOwnProperty.call(HTMLElement.prototype, '
 if (!hasPopover) root.classList.add('no-popover');
 let inFrame = true;
 try { inFrame = window.top !== window.self; } catch (e) { inFrame = true; }
+
+/* Banco compartilhado (Firebase). Sem configuração, ou dentro do Artifact,
+   os dados ficam só neste navegador, como antes. */
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyDtvkjdOS9iB8_X_HvHtaJzyGa1TRn4C3o',
+  authDomain: 'almoxarifado-sala.firebaseapp.com',
+  projectId: 'almoxarifado-sala',
+  storageBucket: 'almoxarifado-sala.firebasestorage.app',
+  messagingSenderId: '309738423503',
+  appId: '1:309738423503:web:f6be65b4c53e4e7f54a3ba'
+};
+const FB_VERSAO = '12.19.0';
+/* ?emulador=1 só vale em endereço local: é como os testes automáticos rodam */
+const emulador = /[?&]emulador=1(&|$)/.test(location.search) && (location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname));
+const fbConfig = emulador ? { apiKey: 'demo-key', authDomain: 'demo-almox.firebaseapp.com', projectId: 'demo-almox', appId: 'demo-app' } : FIREBASE_CONFIG;
+const nuvem = !!fbConfig && !inFrame;
+let me = null, isAdmin = false;
 
 /* Relógio: "hoje" e "ontem" recalculados quando a data muda */
 const clock = { today: '', yest: '', year: '' };
@@ -1216,6 +1320,7 @@ function load() {
   if (n.descartados > 0) pendingOriginal = raw;
 }
 function save() {
+  if (nuvem) return salvarNuvem();
   try {
     if (pendingOriginal !== null) {
       const k = KEY + '-original-' + ymd();
@@ -1429,13 +1534,21 @@ function renderGlobal() {
   $('estResumo').hidden = !n;
   $('regSub').innerHTML = hojeTexto(hoje, true);
   $('fEstReporN').textContent = repor ? NF.format(repor) : '';
-  const exemplos = hasExamples();
+  const exemplos = hasExamples() && (!nuvem || isAdmin);
   $('demoBanner').hidden = !exemplos;
   $('miExemplos').hidden = $('miSepEx').hidden = !exemplos;
   $('miBaixar').hidden = inFrame;
+  $('miRestaurar').hidden = nuvem && !isAdmin;
+  $('miAcesso').hidden = !(nuvem && isAdmin);
+  $('miSair').hidden = $('miSepConta').hidden = !(nuvem && me);
   const lb = lastBackupText();
-  $('footText').textContent = `Salvo neste navegador · Último backup: ${lb}`;
-  $('menuNote').textContent = `Os dados ficam salvos só neste navegador. Último backup: ${lb}.`;
+  if (nuvem) {
+    renderSync();
+    $('menuNote').textContent = me ? `Dados compartilhados. Você entrou como ${me.email}.` : 'Dados compartilhados.';
+  } else {
+    $('footText').textContent = `Salvo neste navegador · Último backup: ${lb}`;
+    $('menuNote').textContent = `Os dados ficam salvos só neste navegador. Último backup: ${lb}.`;
+  }
   renderDatalists();
 }
 let listsVer = -1;
@@ -1986,7 +2099,7 @@ $('histList').addEventListener('click', e => {
 /* =====================================================================
    Diálogos: abrir, fechar, foco e Esc
    ===================================================================== */
-const DIALOGS = ['sheetMat', 'sheetNovo', 'sheetReg', 'sheetBackup', 'sheetRestore', 'alertDlg'].map($);
+const DIALOGS = ['sheetMat', 'sheetNovo', 'sheetReg', 'sheetBackup', 'sheetRestore', 'sheetAcesso', 'alertDlg'].map($);
 let dlgSeq = 0;
 /* camada de cima: o diálogo aberto mais recentemente que não está fechando */
 function topDialog() {
@@ -2156,6 +2269,7 @@ function fillMaterial() {
   if (!m) return;
   caches();
   const s = saldoOf(m.id), sit = situacao(m), k = SIT[sit];
+  $('smExcluir').parentElement.hidden = nuvem && !isAdmin;
   if (smMode === 'detail') $('smTitle').textContent = m.nome;
   $('smMeta').textContent = [m.cod, m.cat, m.local].filter(Boolean).join(' · ');
   $('smSaldo').textContent = fmtQ(s, m.un);
@@ -2437,7 +2551,9 @@ function fillRegistro() {
     `<div class="kv-row"><span class="k">Quantidade</span><span class="v">${esc(fmtSigned(v.tipo === 'in' ? v.qtd : -v.qtd, un))}</span></div>` +
     `<div class="kv-row"><span class="k">Responsável</span><span class="v">${esc(v.resp || '—')}</span></div>` +
     `<div class="kv-row"><span class="k">Observação</span><span class="v">${esc(v.obs || '—')}</span></div>` +
-    `<div class="kv-row"><span class="k">Quando</span><span class="v">${esc(whenFull(v.data))}</span></div>`;
+    `<div class="kv-row"><span class="k">Quando</span><span class="v">${esc(whenFull(v.data))}</span></div>` +
+    (nuvem && v.por ? `<div class="kv-row"><span class="k">Registrado por</span><span class="v">${esc(v.por)}</span></div>` : '');
+  $('srExcluir').parentElement.hidden = nuvem && !(isAdmin || (me && v.por === me.email));
   return true;
 }
 $('srFechar').addEventListener('click', () => closeDialog($('sheetReg')));
@@ -2673,6 +2789,8 @@ $('miCopiar').addEventListener('click', menuAction(copiarBackup));
 $('miBaixar').addEventListener('click', menuAction(baixarBackup));
 $('miRestaurar').addEventListener('click', menuAction(openRestore));
 $('miExemplos').addEventListener('click', menuAction(excluirExemplos));
+$('miAcesso').addEventListener('click', menuAction(abrirAcesso));
+$('miSair').addEventListener('click', menuAction(sairConta));
 
 /* =====================================================================
    Toast e desfazer
@@ -2835,6 +2953,7 @@ function isTextField(el) {
   return el.tagName === 'INPUT' && !['button', 'submit', 'checkbox', 'radio', 'file', 'reset'].includes(el.type);
 }
 document.addEventListener('keydown', e => {
+  if (!$('gate').hidden) return;
   /* Ctrl/⌘+Z desfaz enquanto o toast oferece Desfazer (fora de campos de texto, que têm o próprio desfazer) */
   if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
     if (undo && toastHasUndo && !isTextField(e.target) && !$('alertDlg').open) { e.preventDefault(); doUndo(); }
@@ -2865,7 +2984,7 @@ document.addEventListener('keydown', e => {
 
 /* Outras abas e virada do dia */
 addEventListener('storage', e => {
-  if (e.key !== KEY || e.newValue === null) return;
+  if (nuvem || e.key !== KEY || e.newValue === null) return;
   let parsed;
   try { parsed = JSON.parse(e.newValue); } catch (err) { return; }
   const n = normalize(parsed);
@@ -2883,13 +3002,372 @@ addEventListener('focus', checkDay);
 setInterval(checkDay, 60000);
 
 /* =====================================================================
+   Banco compartilhado (Firebase): entrada, sincronização e acesso
+   O resto do app continua mexendo só em `db`. Aqui, o que mudou em `db`
+   vira gravação no Firestore, e o que chega do Firestore vira `db`.
+   ===================================================================== */
+let fb = null, fauth = null, fstore = null, carregou = false, assinaturas = [], aplicarTimer = 0;
+let acessoDoc = null, importDispensado = false;
+const remoto = { mats: [], movs: [], seq: 0, ok: {}, pend: {}, cache: {} };
+/* o que o servidor tem (com o que já está a caminho): base para saber o que gravar */
+const enviado = { mats: new Map(), movs: new Map(), seq: 0 };
+const bancoVazio = () => ({ materiais: [], movs: [], seq: 0, demo: false });
+/* JSON com as chaves em ordem: o mesmo objeto sempre vira o mesmo texto */
+const estavel = o => JSON.stringify(o, Object.keys(o).sort());
+const porId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+const canonico = d => JSON.stringify([d.seq, d.materiais.slice().sort(porId).map(estavel), d.movs.slice().sort(porId).map(estavel)]);
+
+async function iniciarNuvem() {
+  telaEntrada('carregando');
+  if (!fb) {
+    try {
+      const base = `https://www.gstatic.com/firebasejs/${FB_VERSAO}/`;
+      const mods = await Promise.all(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(base + f)));
+      fb = Object.assign({}, ...mods);
+    } catch (e) {
+      telaEntrada('erro', { msg: 'Não foi possível carregar o banco compartilhado. Confira a internet e tente de novo.' });
+      return;
+    }
+  }
+  const app = fb.initializeApp(fbConfig);
+  fauth = fb.getAuth(app);
+  fauth.languageCode = 'pt';
+  let cache;
+  try { cache = fb.persistentLocalCache({ tabManager: fb.persistentMultipleTabManager() }); }
+  catch (e) { cache = fb.memoryLocalCache(); }
+  fstore = fb.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: cache });
+  if (emulador) {
+    fb.connectAuthEmulator(fauth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    fb.connectFirestoreEmulator(fstore, '127.0.0.1', 8080);
+    window.__entrarTeste = email => fb.signInWithCredential(fauth, fb.GoogleAuthProvider.credential(JSON.stringify({ sub: 'uid-' + email, email, email_verified: true, name: email.split('@')[0] })));
+  }
+  fb.getRedirectResult(fauth).catch(() => { /* o erro aparece ao tentar de novo */ });
+  fb.onAuthStateChanged(fauth, u => (u ? entrou(u) : saiu()));
+}
+
+function entrou(u) {
+  me = { email: String(u.email || '').toLowerCase(), nome: String(u.displayName || '') };
+  if (!prefs.resp && me.nome) { prefs.resp = me.nome.split(/\s+/)[0]; savePrefs(); $('rResp').value = prefs.resp; }
+  telaEntrada('carregando');
+  assinar();
+  renderGlobal();
+}
+function saiu() {
+  pararAssinaturas();
+  me = null; isAdmin = false; acessoDoc = null; carregou = false;
+  enviado.mats.clear(); enviado.movs.clear(); enviado.seq = 0;
+  for (const d of DIALOGS) if (d.open) d.close();
+  db = bancoVazio(); ver++; undo = null; histMatVer = -1;
+  regMatId = null; $('rMat').value = '';
+  renderAll();
+  telaEntrada('entrar');
+}
+
+async function entrarGoogle() {
+  if (!fauth) return;
+  const prov = new fb.GoogleAuthProvider();
+  prov.setCustomParameters({ prompt: 'select_account' });
+  $('gateHint').textContent = '';
+  try {
+    await fb.signInWithPopup(fauth, prov);
+  } catch (e) {
+    const c = e && e.code;
+    if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return;
+    if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') {
+      try { await fb.signInWithRedirect(fauth, prov); return; } catch (e2) { /* segue para a mensagem */ }
+    }
+    const msg = c === 'auth/unauthorized-domain'
+      ? 'Este endereço não está autorizado no Firebase. Adicione-o em Authentication, Configurações, Domínios autorizados.'
+      : c === 'auth/network-request-failed'
+        ? 'Sem conexão com a internet. Tente de novo.'
+        : 'Não foi possível entrar. Se o link abriu dentro do WhatsApp ou do Instagram, abra no Chrome ou no Safari.';
+    telaEntrada('entrar', { hint: msg, erro: true });
+  }
+}
+async function sairConta(trigger) {
+  if (!fauth || !me) return;
+  const ok = await confirmar({ titulo: 'Sair da conta?', msg: me.email, okTexto: 'Sair', okTipo: 'accent', trigger });
+  if (ok) fb.signOut(fauth);
+}
+
+/* ---------- Tela de entrada (cobre o app até os dados chegarem) ---------- */
+const TELAS = {
+  carregando: { msg: 'Carregando…', spin: true },
+  entrar: { msg: 'Entre com sua conta Google para ver e registrar os materiais.', entrar: true },
+  semAcesso: { msg: 'Seu acesso ainda não foi liberado. Peça ao responsável pelo almoxarifado para liberar este e-mail:', email: true, tentar: true, trocar: true },
+  erro: { msg: 'Algo deu errado.', tentar: true }
+};
+function telaEntrada(nome, { msg, hint = '', erro = false } = {}) {
+  const g = $('gate'), app = [$('chrome'), $('main')];
+  if (!nome) {
+    const tinhaFoco = g.contains(document.activeElement);
+    g.hidden = true;
+    app.forEach(el => { el.inert = false; });
+    if (tinhaFoco) fallbackFocus().focus({ preventScroll: true });
+    return;
+  }
+  const t = TELAS[nome];
+  app.forEach(el => { el.inert = true; });
+  $('gateMsg').textContent = msg || t.msg;
+  $('gateSpin').hidden = !t.spin;
+  $('gateEmail').hidden = !t.email;
+  $('gateEmail').textContent = me ? me.email : '';
+  $('gateEntrar').hidden = !t.entrar;
+  $('gateTentar').hidden = !t.tentar;
+  $('gateTrocar').hidden = !t.trocar;
+  $('gateHint').textContent = hint;
+  $('gateHint').className = 'gate-hint' + (erro ? ' err' : '');
+  g.hidden = false;
+  const foco = !$('gateEntrar').hidden ? $('gateEntrar') : !$('gateTentar').hidden ? $('gateTentar') : $('gateCard');
+  foco.focus({ preventScroll: true });
+}
+$('gateEntrar').addEventListener('click', entrarGoogle);
+$('gateTentar').addEventListener('click', () => {
+  if (!fauth) { iniciarNuvem(); return; }
+  if (me) { telaEntrada('carregando'); assinar(); } else telaEntrada('entrar');
+});
+$('gateTrocar').addEventListener('click', () => { if (fauth) fb.signOut(fauth); });
+
+/* ---------- Leitura em tempo real ---------- */
+function pararAssinaturas() {
+  assinaturas.forEach(parar => parar());
+  assinaturas = [];
+  clearTimeout(aplicarTimer);
+  remoto.ok = {}; remoto.pend = {}; remoto.cache = {};
+}
+function assinar() {
+  pararAssinaturas();
+  const meta = { includeMetadataChanges: true };
+  const lista = (nome, chave) => fb.onSnapshot(fb.collection(fstore, nome), meta, s => {
+    remoto[chave] = s.docs.map(d => ({ ...d.data(), id: d.id }));
+    recebido(chave, s.metadata);
+  }, erroLeitura);
+  assinaturas.push(lista('materiais', 'mats'), lista('movs', 'movs'));
+  assinaturas.push(fb.onSnapshot(fb.doc(fstore, 'meta', 'estado'), meta, s => {
+    remoto.seq = s.exists() ? Number(s.data().seq) || 0 : 0;
+    recebido('meta', s.metadata);
+  }, erroLeitura));
+  /* só administradores conseguem ler a lista de acesso: é assim que o app sabe quem administra */
+  assinaturas.push(fb.onSnapshot(fb.doc(fstore, 'config', 'acesso'), s => {
+    isAdmin = true;
+    acessoDoc = s.exists() ? s.data() : null;
+    if (!s.exists() && !s.metadata.fromCache) fb.setDoc(s.ref, { admins: [], editores: [], aberto: false }).catch(() => { /* tenta de novo na próxima vez */ });
+    renderAcesso();
+    renderGlobal();
+    verImportacao();
+    if ($('sheetMat').open) fillMaterial();
+    if ($('sheetReg').open) fillRegistro();
+  }, () => {
+    isAdmin = false; acessoDoc = null;
+    renderGlobal();
+    if ($('sheetAcesso').open) closeDialog($('sheetAcesso'));
+  }));
+}
+function recebido(chave, md) {
+  remoto.ok[chave] = true;
+  remoto.pend[chave] = md.hasPendingWrites;
+  remoto.cache[chave] = md.fromCache;
+  /* um lote mexe em materiais e registros juntos: espera as listas chegarem antes de redesenhar */
+  clearTimeout(aplicarTimer);
+  aplicarTimer = setTimeout(aplicarRemoto, 40);
+}
+function aplicarRemoto() {
+  renderSync();
+  if (!remoto.ok.mats || !remoto.ok.movs || !remoto.ok.meta) return;
+  const novo = normalize({ materiais: remoto.mats, movs: remoto.movs, seq: remoto.seq, demo: false }).db;
+  enviado.mats = new Map(novo.materiais.map(m => [m.id, estavel(m)]));
+  enviado.movs = new Map(novo.movs.map(v => [v.id, estavel(v)]));
+  enviado.seq = remoto.seq;
+  const primeira = !carregou;
+  carregou = true;
+  /* o eco das próprias gravações não redesenha nem tira o Desfazer */
+  if (!primeira && canonico(novo) === canonico(db)) return;
+  db = novo; ver++; undo = null; histMatVer = -1;
+  if (regMatId && !db.materiais.some(m => m.id === regMatId)) { regMatId = null; $('rMat').value = ''; }
+  renderAll();
+  verImportacao();
+  if (primeira) { telaEntrada(null); return; }
+  if ($('sheetMat').open && !matById(smId)) { closeDialog($('sheetMat')); toast('Este material foi excluído por outra pessoa'); return; }
+  refreshSheets();
+}
+function erroLeitura(e) {
+  pararAssinaturas();
+  carregou = false;
+  db = bancoVazio(); ver++; undo = null; histMatVer = -1;
+  for (const d of DIALOGS) if (d.open) d.close();
+  renderAll();
+  if (e && e.code === 'permission-denied') telaEntrada('semAcesso');
+  else telaEntrada('erro', { msg: 'Não foi possível ler o banco compartilhado. Tente de novo.' });
+}
+
+/* ---------- Gravação: só o que mudou desde o último retrato do servidor ---------- */
+function salvarNuvem() {
+  if (!fstore || !me || !carregou) return false;
+  for (const v of db.movs) if (!enviado.movs.has(v.id) && !v.por) v.por = me.email;
+  const ops = [];
+  for (const [col, itens, base] of [['materiais', db.materiais, enviado.mats], ['movs', db.movs, enviado.movs]]) {
+    const vivos = new Set();
+    for (const o of itens) {
+      vivos.add(o.id);
+      const j = estavel(o);
+      if (base.get(o.id) !== j) { base.set(o.id, j); ops.push(lote => lote.set(fb.doc(fstore, col, o.id), JSON.parse(j))); }
+    }
+    for (const id of [...base.keys()]) if (!vivos.has(id)) { base.delete(id); ops.push(lote => lote.delete(fb.doc(fstore, col, id))); }
+  }
+  if (db.seq > enviado.seq) { const seq = enviado.seq = db.seq; ops.push(lote => lote.set(fb.doc(fstore, 'meta', 'estado'), { seq })); }
+  /* o Firestore aceita até 500 operações por lote */
+  for (let i = 0; i < ops.length; i += 400) {
+    const lote = fb.writeBatch(fstore);
+    for (const op of ops.slice(i, i + 400)) op(lote);
+    lote.commit().catch(erroGravacao);
+  }
+  if (ops.length) renderSync(true);
+  return true;
+}
+function erroGravacao(e) {
+  toast(e && e.code === 'permission-denied' ? 'Você não tem permissão para fazer isso.' : 'Não foi possível salvar no banco compartilhado.', { error: true, dur: 6000 });
+}
+
+/* ---------- Estado da sincronização (rodapé) ---------- */
+function renderSync(enviando) {
+  if (!nuvem) return;
+  const pend = enviando || remoto.pend.mats || remoto.pend.movs || remoto.pend.meta;
+  let c = 'ok', t = 'Sincronizado';
+  if (!navigator.onLine) { c = 'off'; t = pend ? 'Sem internet: os registros vão quando a conexão voltar' : 'Sem internet'; }
+  else if (pend) { c = 'wait'; t = 'Enviando…'; }
+  else if (!carregou || remoto.cache.mats || remoto.cache.movs) { c = 'wait'; t = 'Conectando…'; }
+  $('footText').innerHTML = `<span class="sync-dot ${c}" aria-hidden="true"></span>${esc(t)}${me ? ' · ' + esc(me.email) : ''}`;
+}
+addEventListener('online', () => renderSync());
+addEventListener('offline', () => renderSync());
+
+/* ---------- Pessoas com acesso (administradores) ---------- */
+function acessoAtual() {
+  const a = acessoDoc || {};
+  return { admins: Array.isArray(a.admins) ? a.admins.slice() : [], editores: Array.isArray(a.editores) ? a.editores.slice() : [], aberto: a.aberto === true };
+}
+function abrirAcesso(trigger) {
+  renderAcesso();
+  $('aErr').hidden = true;
+  $('aEmail').value = '';
+  openDialog($('sheetAcesso'), { trigger, focus: $('saTitle') });
+}
+function renderAcesso() {
+  const a = acessoAtual();
+  const lista = (emails, papel) => emails.length
+    ? emails.slice().sort(COLL.compare).map(em =>
+        `<div class="row static acc-row"><span class="em">${esc(em)}${me && em === me.email ? ' (você)' : ''}</span>` +
+        `<button type="button" class="btn-text danger" data-rm="${esc(em)}" data-papel="${papel}" aria-label="Remover ${esc(em)}">Remover</button></div>`).join('')
+    : '<div class="row static"><span class="acc-vazio">Ninguém ainda.</span></div>';
+  $('aEditores').innerHTML = lista(a.editores, 'editores');
+  $('aAdmins').innerHTML = lista(a.admins, 'admins');
+  $('aAberto').checked = a.aberto;
+  $('aAbertoNota').textContent = a.aberto ? 'Ligado: quem tiver o link e uma conta Google consegue ver e registrar.' : 'Desligado: só os e-mails acima entram.';
+  $('aAbertoNota').className = 'group-foot' + (a.aberto ? ' warn' : '');
+}
+function gravarAcesso(a, aviso) {
+  acessoDoc = a;
+  renderAcesso();
+  fb.setDoc(fb.doc(fstore, 'config', 'acesso'), a).catch(e => {
+    toast(e && e.code === 'permission-denied' ? 'Só administradores mudam o acesso.' : 'Não foi possível salvar o acesso.', { error: true });
+  });
+  if (aviso) toast(aviso);
+}
+$('formAcesso').addEventListener('submit', e => {
+  e.preventDefault();
+  const em = $('aEmail').value.trim().toLowerCase();
+  const papel = $('aPapel').value;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+    $('aErr').textContent = 'Digite um e-mail válido, como nome@gmail.com.';
+    $('aErr').hidden = false;
+    $('aEmail').focus();
+    return;
+  }
+  $('aErr').hidden = true;
+  const a = acessoAtual();
+  const outro = papel === 'admins' ? 'editores' : 'admins';
+  a[outro] = a[outro].filter(x => x !== em);
+  if (!a[papel].includes(em)) a[papel].push(em);
+  gravarAcesso(a, `${em} pode ${papel === 'admins' ? 'administrar' : 'registrar'}`);
+  $('aEmail').value = '';
+});
+async function removerAcesso(e) {
+  const b = e.target.closest('[data-rm]');
+  if (!b) return;
+  const em = b.dataset.rm, papel = b.dataset.papel;
+  if (me && em === me.email && papel === 'admins') {
+    const ok = await confirmar({ titulo: 'Remover você mesmo?', msg: 'Você deixa de administrar, a não ser que seja o dono definido nas regras do Firebase.', okTexto: 'Remover', trigger: b });
+    if (!ok) return;
+  }
+  const a = acessoAtual();
+  a[papel] = a[papel].filter(x => x !== em);
+  gravarAcesso(a, `${em} removido`);
+  $('saTitle').focus({ preventScroll: true });
+}
+$('aEditores').addEventListener('click', removerAcesso);
+$('aAdmins').addEventListener('click', removerAcesso);
+$('aAberto').addEventListener('change', async e => {
+  const ligar = e.target.checked;
+  if (ligar) {
+    e.target.checked = false;
+    const ok = await confirmar({ titulo: 'Liberar para qualquer conta Google?', msg: 'Quem tiver o link e uma conta Google vai conseguir ver o estoque e registrar entradas e saídas.', okTexto: 'Liberar', okTipo: 'accent', trigger: e.target });
+    if (!ok) return;
+  }
+  const a = acessoAtual();
+  a.aberto = ligar;
+  gravarAcesso(a, ligar ? 'Qualquer conta Google pode registrar' : 'Só os e-mails da lista entram');
+});
+$('saFechar').addEventListener('click', () => closeDialog($('sheetAcesso')));
+
+/* ---------- Trazer os dados que estavam só neste navegador ---------- */
+function dadosLocais() {
+  let raw = null;
+  try { raw = localStorage.getItem(KEY); } catch (e) { return null; }
+  if (!raw) return null;
+  let n = null;
+  try { n = normalize(JSON.parse(raw)); } catch (e) { n = null; }
+  if (!n) return null;
+  const d = n.db;
+  const exemplo = m => m.exemplo === true || (d.demo === true && DEMO_PAIRS.includes(m.nome + '|' + m.cod));
+  const materiais = d.materiais.filter(m => !exemplo(m));
+  const ids = new Set(materiais.map(m => m.id));
+  const movs = d.movs.filter(v => ids.has(v.mat) && v.exemplo !== true);
+  return materiais.length ? { materiais, movs, seq: d.seq, demo: false } : null;
+}
+function verImportacao() {
+  const d = nuvem && isAdmin && carregou && !importDispensado && !db.materiais.length ? dadosLocais() : null;
+  $('importBanner').hidden = !d;
+  if (d) $('importText').textContent = `Este navegador tem ${plural(d.materiais.length, 'material', 'materiais')} e ${plural(d.movs.length, 'registro', 'registros')} salvos só aqui.`;
+}
+$('btnImportarNao').addEventListener('click', () => { importDispensado = true; verImportacao(); fallbackFocus().focus({ preventScroll: true }); });
+$('btnImportar').addEventListener('click', async e => {
+  const d = dadosLocais();
+  if (!d) { verImportacao(); return; }
+  const ok = await confirmar({
+    titulo: 'Enviar para o banco compartilhado?',
+    msg: `${plural(d.materiais.length, 'material', 'materiais')} e ${plural(d.movs.length, 'registro', 'registros')} deste navegador vão para o banco. Todos com acesso passam a ver.`,
+    okTexto: 'Enviar', okTipo: 'accent', trigger: e.currentTarget
+  });
+  if (!ok || db.materiais.length) { verImportacao(); return; }
+  mutate(() => { db = d; });
+  renderAll();
+  verImportacao();
+  fallbackFocus().focus({ preventScroll: true });
+  toast('Dados enviados para o banco', { sub: plural(d.materiais.length, 'material', 'materiais') });
+});
+
+/* =====================================================================
    Início
    ===================================================================== */
 loadPrefs();
-storageOk = probeStorage();
-load();
-if (!storageOk) $('saveWarn').hidden = false;
-if (corruptRaw !== null) $('corruptWarn').hidden = false;
+if (nuvem) {
+  db = bancoVazio();
+} else {
+  storageOk = probeStorage();
+  load();
+  if (!storageOk) $('saveWarn').hidden = false;
+  if (corruptRaw !== null) $('corruptWarn').hidden = false;
+}
 regTipo = prefs.tipo;
 filtroEst.set(prefs.filtroEst);
 $('rResp').value = prefs.resp;
@@ -2897,6 +3375,7 @@ renderGlobal();
 setTab(prefs.aba, { initial: true });
 setupScrollWatch();
 requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('preload')));
+if (nuvem) iniciarNuvem();
 </script>
 </body>
 </html>

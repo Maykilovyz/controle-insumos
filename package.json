@@ -1,0 +1,15 @@
+{
+  "name": "controle-insumos",
+  "private": true,
+  "description": "Almoxarifado da Sala: controle de insumos com banco compartilhado no Firebase",
+  "scripts": {
+    "test": "firebase emulators:exec --only auth,firestore --project demo-almox \"node tests/e2e.cjs\"",
+    "test:regras": "firebase emulators:exec --only firestore --project demo-almox \"node tests/regras.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.19.0",
+    "firebase-tools": "15.33.0",
+    "playwright": "1.56.1"
+  }
+}

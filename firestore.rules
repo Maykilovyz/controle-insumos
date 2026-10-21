@@ -1,0 +1,91 @@
+rules_version = '2';
+
+// Regras do banco compartilhado do Almoxarifado da Sala.
+// Antes de colar no console do Firebase, troque DONO@gmail.com pelo e-mail Google do responsável (tudo minúsculo).
+//
+// Quem pode o quê:
+// - Dono e e-mails em config/acesso.admins: tudo, inclusive liberar pessoas, excluir materiais e restaurar backup.
+// - E-mails em config/acesso.editores: ver, cadastrar e editar materiais, registrar e excluir os próprios registros.
+// - Se config/acesso.aberto == true: qualquer conta Google verificada tem o mesmo acesso de editor.
+// - Ninguém sem login lê ou grava nada.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function eu() {
+      return request.auth.token.email.lower();
+    }
+    function dono() {
+      return logado() && eu() == 'DONO@gmail.com';
+    }
+    function temAcesso() {
+      return exists(/databases/$(database)/documents/config/acesso);
+    }
+    function acesso() {
+      return get(/databases/$(database)/documents/config/acesso).data;
+    }
+    function admin() {
+      return dono() || (logado() && temAcesso() && eu() in acesso().admins);
+    }
+    function membro() {
+      return admin() || (logado() && temAcesso() && (acesso().aberto == true || eu() in acesso().editores));
+    }
+
+    function texto(v, max) {
+      return v is string && v.size() <= max;
+    }
+    function acessoValido(d) {
+      return d.keys().hasAll(['admins', 'editores', 'aberto'])
+        && d.admins is list && d.admins.size() <= 200
+        && d.editores is list && d.editores.size() <= 1000
+        && d.aberto is bool;
+    }
+    function materialValido(d) {
+      return texto(d.nome, 200) && d.nome.size() > 0
+        && texto(d.cod, 40)
+        && texto(d.cat, 120)
+        && texto(d.un, 20)
+        && texto(d.local, 200)
+        && d.min is number && d.min >= 0;
+    }
+    function movValido(d) {
+      return (d.tipo == 'in' || d.tipo == 'out')
+        && d.qtd is number && d.qtd > 0
+        && texto(d.mat, 100) && d.mat.size() > 0
+        && texto(d.data, 25) && d.data.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}$')
+        && texto(d.resp, 200)
+        && texto(d.obs, 500);
+    }
+
+    // Lista de quem tem acesso: só admin lê e altera (os e-mails não ficam expostos).
+    match /config/acesso {
+      allow read: if admin();
+      allow create, update: if admin() && acessoValido(request.resource.data);
+      allow delete: if dono();
+    }
+
+    match /materiais/{id} {
+      allow read: if membro();
+      allow create, update: if membro() && materialValido(request.resource.data);
+      allow delete: if admin();
+    }
+
+    // Cada registro guarda em "por" o e-mail de quem registrou.
+    match /movs/{id} {
+      allow read: if membro();
+      allow create: if membro() && movValido(request.resource.data)
+        && (admin() || request.resource.data.get('por', '') == eu());
+      allow update: if admin() && movValido(request.resource.data);
+      allow delete: if admin() || (membro() && resource.data.get('por', '') == eu());
+    }
+
+    // meta/estado guarda o contador de códigos MAT-###.
+    match /meta/{id} {
+      allow read: if membro();
+      allow write: if membro() && request.resource.data.seq is int && request.resource.data.seq >= 0;
+    }
+    // Qualquer outro caminho fica fechado (o Firestore nega o que nenhuma regra libera).
+  }
+}
