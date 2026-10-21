@@ -7,7 +7,7 @@ Link: https://maykilovyz.github.io/controle-insumos/
 ## Funcionalidades
 - Estoque com busca e a aba **Faltando**: o que está com alguém, o que zerou e o que está abaixo do mínimo
 - Registro de saída, devolução e entrada com quantidade, responsável, observação e data
-- Devolução em um toque: Registrar → Devolução mostra quem está com o quê, com o botão Devolver
+- Devolução em um toque: Registrar → Devolução mostra quem está com o quê, com o botão Devolver (e "Não vai voltar" para item perdido ou quebrado)
 - Material de consumo (pilha, fita, papel): a saída não espera devolução
 - Histórico por dia, com filtros
 - Cadastro de materiais com código automático (MAT-001…)
@@ -27,7 +27,7 @@ Quem pode o quê:
 Para liberar alguém: menu `…` → **Pessoas com acesso** → digite o e-mail Google da pessoa.
 
 ### Como o "com alguém" é calculado
-Não há tabela de empréstimos: tudo sai do histórico. Cada saída de um material que volta para a sala fica com a pessoa que pegou até voltar. Conta como devolução a entrada feita pelo botão Devolver (`dev: true`) ou uma entrada comum da mesma pessoa (mesmo nome, sem diferença de maiúsculas e acentos) registrada depois da saída. Material marcado como de consumo (`consumo: true`) e ajustes de contagem (`ajuste: true`) não geram pendência. Esses campos extras não exigem mudar as regras do Firestore.
+Não há tabela de empréstimos: tudo sai do histórico. Cada saída de um material que volta para a sala fica com a pessoa que pegou até voltar. Conta como devolução a entrada feita pelo botão Devolver (`dev: true`) ou uma entrada comum da mesma pessoa (mesmo nome, sem diferença de maiúsculas e acentos) registrada depois da saída. Uma entrada maior do que o que a pessoa tem fecha o que está com ela e o resto vai para o estoque, sem virar crédito para a próxima saída. Item perdido ou quebrado se fecha com **Não vai voltar** (`baixa: true`): sai da lista de quem está com o quê sem mexer no estoque. Material marcado como de consumo (`consumo: true`) e ajustes de contagem (`ajuste: true`) não geram pendência. Esses campos extras não exigem mudar as regras do Firestore.
 
 ### Mudar as regras
 1. Edite `firestore.rules`.

@@ -304,6 +304,8 @@ main > .banner{margin-top:var(--s4)}
 .sit-t{font-weight:500}
 .sit.info,.sit-t.info{color:var(--accent)}
 .sit-tx{overflow:hidden;text-overflow:ellipsis}
+.meta.wrap2{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.h-qty.nv,.mv-q.nv{color:var(--label-2)}
 .est .c-sit{overflow:hidden}
 .est .c-sit .sit{max-width:100%}
 
@@ -313,8 +315,8 @@ main > .banner{margin-top:var(--s4)}
 .section-row{display:flex;align-items:center;height:32px;padding:0 var(--s4);border-bottom:var(--hairline) solid var(--separator);background:var(--surface);font-size:var(--fs-cap);line-height:var(--lh-cap);font-weight:600;color:var(--label-2)}
 
 /* Estoque · tabela (desktop) */
-.est.mode-wide .row,.est.mode-wide .colhead{grid-template-columns:minmax(0,1fr) minmax(0,22%) 120px 72px 152px 16px}
-.est.mode-mid .row,.est.mode-mid .colhead{grid-template-columns:minmax(0,1fr) 120px 72px 152px 16px}
+.est.mode-wide .row,.est.mode-wide .colhead{grid-template-columns:minmax(0,1fr) minmax(0,18%) 120px 72px minmax(152px,.9fr) 16px}
+.est.mode-mid .row,.est.mode-mid .colhead{grid-template-columns:minmax(0,1fr) 120px 72px minmax(152px,.9fr) 16px}
 .est .c-local{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .est .c-local.none,.est .c-min{color:var(--label-2)}
 .est .c-qty,.est .c-min{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -1089,6 +1091,7 @@ html.no-popover .menu:not(.open),html.no-popover .toast:not(.open){display:none}
   <p class="alert-err" id="alertErr" hidden></p>
   <div class="alert-btns" id="alertBtns">
     <button type="button" id="alertCancel">Cancelar</button>
+    <button type="button" id="alertExtra" hidden></button>
     <button type="button" id="alertOk">OK</button>
   </div>
 </dialog>
@@ -1414,7 +1417,7 @@ function caches() {
   if (cacheVer === ver) return;
   matMap = new Map(db.materiais.map(m => [m.id, m]));
   const acc = new Map();
-  for (const v of db.movs) acc.set(v.mat, (acc.get(v.mat) || 0) + (v.tipo === 'in' ? v.qtd : -v.qtd));
+  for (const v of db.movs) if (v.baixa !== true) acc.set(v.mat, (acc.get(v.mat) || 0) + (v.tipo === 'in' ? v.qtd : -v.qtd));
   saldoMap = new Map();
   for (const [k, x] of acc) saldoMap.set(k, round3(x));
   byName = db.materiais.slice().sort((a, b) => COLL.compare(a.nome, b.nome));
@@ -1429,9 +1432,10 @@ const matById = id => { caches(); return matMap.get(id); };
 const saldoOf = id => { caches(); return saldoMap.get(id) || 0; };
 
 /* Empréstimos. Toda saída de material que volta para a sala fica "com" quem pegou
-   até a devolução. Devolução é a entrada da mesma pessoa (marcada com dev:true pelo
-   botão Devolver, ou uma entrada comum registrada depois da saída). Material de
-   consumo e ajustes de contagem não geram empréstimo. */
+   até a devolução. Devolução é a entrada da mesma pessoa registrada depois da saída
+   (dev:true quando veio do botão Devolver; baixa:true quando não vai voltar, sem
+   mexer no estoque). Cada entrada abate no máximo o que a pessoa tem naquela hora.
+   Material de consumo e ajustes de contagem não geram empréstimo. */
 const ehConsumo = m => m.consumo === true || (m.consumo === undefined && isDemoMat(m) && SEED_CONSUMO.has(m.nome));
 const ehAjuste = v => v.ajuste === true || (v.obs === 'Ajuste de inventário' && v.dev !== true);
 const chavePessoa = s => fold(s).replace(/\s+/g, ' ').trim();
@@ -1442,27 +1446,26 @@ function calcFora() {
     p.qtd = round3(Math.max(0, p.qtd - q));
     while (q > 1e-9 && p.lotes.length) { const l = p.lotes[0], t = Math.min(l.qtd, q); l.qtd = round3(l.qtd - t); q = round3(q - t); if (l.qtd <= 1e-9) p.lotes.shift(); }
   };
-  /* do mais antigo para o mais novo: uma entrada comum só conta como devolução se veio depois da saída */
+  /* do mais antigo para o mais novo; o que sobra de uma entrada vai para o estoque, nunca vira crédito */
   for (let i = sortedMovs.length - 1; i >= 0; i--) {
     const v = sortedMovs[i], m = matMap.get(v.mat);
     if (!m || ehConsumo(m) || ehAjuste(v)) continue;
     const k = v.mat + '\u0000' + chavePessoa(v.resp);
     let p = pessoas.get(k);
+    if (!p) pessoas.set(k, p = { mat: v.mat, k: chavePessoa(v.resp), nome: v.resp.trim(), qtd: 0, lotes: [], sobra: null });
     if (v.tipo === 'out') {
-      if (!p) pessoas.set(k, p = { mat: v.mat, k: chavePessoa(v.resp), nome: '', qtd: 0, lotes: [], dev: 0 });
       p.nome = v.resp.trim();
       p.qtd = round3(p.qtd + v.qtd);
       p.lotes.push({ qtd: v.qtd, data: v.data });
-    } else if (v.dev === true) {
-      /* devolução explícita vale mesmo com data anterior à saída */
-      if (!p) pessoas.set(k, p = { mat: v.mat, k: chavePessoa(v.resp), nome: v.resp.trim(), qtd: 0, lotes: [], dev: 0 });
-      p.dev = round3(p.dev + v.qtd);
-    } else if (p && p.qtd > 0) tirar(p, v.qtd);
+      /* devolução do mesmo minuto que ficou antes na ordem (relógios de aparelhos diferentes) */
+      const c = p.sobra; p.sobra = null;
+      if (c && c.data === v.data) tirar(p, Math.min(c.qtd, p.qtd));
+    } else if (p.qtd > 0) tirar(p, Math.min(v.qtd, p.qtd));
+    else if (v.dev === true) p.sobra = { qtd: v.qtd, data: v.data };
   }
   foraMap = new Map();
   foraLista = [];
   for (const p of pessoas.values()) {
-    if (p.dev) tirar(p, p.dev);
     if (p.qtd <= 1e-9 || !p.lotes.length) continue;
     const h = { mat: p.mat, k: p.k, nome: p.nome, qtd: p.qtd, desde: p.lotes[0].data };
     let arr = foraMap.get(p.mat);
@@ -1485,7 +1488,7 @@ function desdeTexto(s) {
   return diff > 1 ? `há ${NF.format(diff)} dias` : `em ${day.slice(8, 10)}/${day.slice(5, 7)}`;
 }
 function foldOfMat(m) { let f = foldMat.get(m.id); if (f === undefined) { f = fold(`${m.nome} ${m.cod} ${m.cat} ${m.local}`); foldMat.set(m.id, f); } return f; }
-function foldOfMov(v) { let f = foldMov.get(v); if (f === undefined) { const m = matMap.get(v.mat); f = fold(`${v.resp} ${v.obs} ${m ? m.nome : ''}${v.dev === true ? ' devolução' : ''}`); foldMov.set(v, f); } return f; }
+function foldOfMov(v) { let f = foldMov.get(v); if (f === undefined) { const m = matMap.get(v.mat); f = fold(`${v.resp} ${v.obs} ${m ? m.nome : ''}${v.dev === true ? ' ' + movTitulo(v) : ''}`); foldMov.set(v, f); } return f; }
 
 /* Situação: regra única para linha, filtro e resumo.
    Faltando = alguém está com o material, ou o que há na sala acabou ou está abaixo do mínimo. */
@@ -1498,22 +1501,26 @@ const SIT = {
 };
 const GRUPOS = [['fora', 'Com alguém'], ['repor', 'Para repor'], ['ok', 'Em dia']];
 function situacao(m) {
-  const s = saldoOf(m.id), min = m.min || 0;
+  const s = saldoOf(m.id), min = m.min || 0, f = foraQtd(m.id);
   if (s < 0) return 'neg';
-  if (foraQtd(m.id) > 0) return 'fora';
+  /* falta só porque está com alguém: quando voltar, fica em dia. Se nem assim chega ao mínimo, é para repor. */
+  if (f > 0 && s + f >= min) return 'fora';
   if (s === 0) return 'zero';
   if (s < min) return 'low';
   return 'ok';
 }
-/* "2 un com Ana" ou "5 un com 3 pessoas" */
+/* "2 un com Ana", "5 un com 3 pessoas" ou "Abaixo do mínimo · 1 un com Ana" */
 function sitTexto(m, s) {
-  if (s !== 'fora') return SIT[s].t;
-  const f = foraDe(m.id), q = foraQtd(m.id);
-  return `${fmtQ(q, m.un)} com ${f.length === 1 ? f[0].nome || 'alguém' : `${f.length} pessoas`}`;
+  return s === 'fora' ? comTexto(m) : [SIT[s].t, comTexto(m)].filter(Boolean).join(' · ');
+}
+function comTexto(m) {
+  const f = foraDe(m.id);
+  if (!f.length) return '';
+  return `${fmtQ(foraQtd(m.id), m.un)} com ${f.length === 1 ? f[0].nome || 'alguém' : `${f.length} pessoas`}`;
 }
 function todayCounts() {
   let ins = 0, outs = 0;
-  for (const v of db.movs) if (v.data.slice(0, 10) === clock.today) { if (v.tipo === 'in') ins++; else outs++; }
+  for (const v of db.movs) if (v.data.slice(0, 10) === clock.today && v.baixa !== true) { if (v.tipo === 'in') ins++; else outs++; }
   return { ins, outs };
 }
 const hojeTexto = ({ ins, outs }, b = false) => {
@@ -1698,8 +1705,9 @@ const filtroEst = radiogroup($('fEstFiltro'), v => { prefs.filtroEst = v; savePr
 function estAria(m, s) {
   const parts = [m.nome, `${fmtQ(saldoOf(m.id), m.un)} na sala`];
   if (s === 'low') parts.push(`abaixo do mínimo de ${fmtNum(m.min)}`);
-  else if (s === 'fora') parts.push(sitTexto(m, s));
-  else if (s !== 'ok') parts.push(SIT[s].t.toLowerCase());
+  else if (s === 'zero' || s === 'neg') parts.push(SIT[s].t.toLowerCase());
+  const com = comTexto(m);
+  if (com) parts.push(com);
   if (m.local) parts.push(m.local);
   return parts.join(', ');
 }
@@ -1713,9 +1721,10 @@ function estRowHtml(m, s, i, md, secEnd) {
   const cls = `row${secEnd ? ' sec-end' : ''}`;
   const aria = esc(estAria(m, s));
   if (md === 'mob') {
-    const k = SIT[s], t = sitTexto(m, s);
-    const sub = (t ? `<span class="sit-t ${k.c}">${esc(t)}</span> · ` : '') + esc([m.cod, m.local].filter(Boolean).join(' · '));
-    return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${esc(m.nome)}</span><span class="meta">${sub}</span></span><span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>${CHEV}</button>`;
+    const k = SIT[s], t = sitTexto(m, s), com = !!comTexto(m);
+    /* com alguém: o nome de quem está com o material não pode ser cortado; código e local ficam na folha */
+    const sub = com ? `<span class="sit-t ${k.c}">${esc(t)}</span>` : (t ? `<span class="sit-t ${k.c}">${esc(t)}</span> · ` : '') + esc([m.cod, m.local].filter(Boolean).join(' · '));
+    return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${esc(m.nome)}</span><span class="meta${com ? ' wrap2' : ''}">${sub}</span></span><span class="c-qty"><span class="q">${fmtNum(q)}</span>${NBSP}<span class="u">${esc(unidade(m.un, q))}</span></span>${CHEV}</button>`;
   }
   const meta = [m.cod, m.cat, md === 'mid' ? m.local : ''].filter(Boolean).join(' · ');
   return `<button type="button" class="${cls}" data-i="${i}" aria-label="${aria}">` +
@@ -1827,7 +1836,10 @@ function regFoot(m, tipo, qtdStr, resp) {
     return { text: `Disponível: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s - q), m.un)}${volta}` : ''), err: false, block: false };
   }
   const h = comQuem(m.id, resp);
-  return { text: `Na sala: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s + q), m.un)}` : '') + (h ? ` · conta como devolução de ${h.nome}` : ''), err: false, block: false };
+  const dv = !h ? '' : ok && round3(q) > h.qtd + 1e-9
+    ? ` · ${fmtQ(h.qtd, m.un)} ${h.qtd < 2 ? 'conta' : 'contam'} como devolução de ${h.nome}`
+    : ` · conta como devolução de ${h.nome}`;
+  return { text: `Na sala: ${fmtQ(s, m.un)}` + (ok ? ` · ficará ${fmtQ(round3(s + q), m.un)}` : '') + dv, err: false, block: false };
 }
 function setFieldError(inputId, errId, msg) {
   const inp = $(inputId), err = $(errId), field = inp.closest('.field');
@@ -2104,19 +2116,23 @@ function goRegistrar(tipo) {
 /* Registro novo; a entrada de quem está com o material conta como devolução */
 function novoMov(m, tipo, qtd, data, resp, obs) {
   const mov = { id: uid(), mat: m.id, tipo, qtd, data, resp, obs };
-  if (tipo === 'in' && comQuem(m.id, resp)) mov.dev = true;
+  const h = tipo === 'in' && comQuem(m.id, resp);
+  /* só é devolução se não passa do que a pessoa levou; o resto é entrada comum (abate o que ela tem) */
+  if (h && qtd <= h.qtd + 1e-9) mov.dev = true;
   return mov;
 }
-const movTitulo = v => (v.tipo === 'out' ? 'Saída' : v.dev === true ? 'Devolução' : 'Entrada');
+const movTitulo = v => (v.tipo === 'out' ? 'Saída' : v.baixa === true ? 'Não voltou' : v.dev === true ? 'Devolução' : 'Entrada');
 
 /* ---------- Devolução: lista de quem está com o quê ---------- */
 let devRows = [];
 function devRowHtml(h, i, comMaterial) {
-  const m = matMap.get(h.mat), quem = h.nome || 'Sem nome';
-  const titulo = comMaterial ? m.nome : quem;
-  const meta = (comMaterial ? quem + ' · ' : '') + desdeTexto(h.desde);
+  const m = matMap.get(h.mat), quem = h.nome || 'Sem nome', q = esc(fmtQ(h.qtd, m.un));
+  /* a lista segue a ordem das pessoas: o nome vem em destaque, o material embaixo */
+  const meta = comMaterial
+    ? `${esc(m.nome)}<span class="q-m"> · ${q}</span> · ${esc(desdeTexto(h.desde))}`
+    : `<span class="q-m">${q} · </span>${esc(desdeTexto(h.desde))}`;
   const aria = `Devolver ${fmtQ(h.qtd, m.un)} de ${m.nome}, com ${quem}`;
-  return `<div class="row static dev-row"><span class="c-name"><span class="nm">${esc(titulo)}</span><span class="meta"><span class="q-m">${esc(fmtQ(h.qtd, m.un))} · </span>${esc(meta)}</span></span>` +
+  return `<div class="row static dev-row"><span class="c-name"><span class="nm">${esc(quem)}</span><span class="meta">${meta}</span></span>` +
     `<span class="dev-q">${esc(fmtQ(h.qtd, m.un))}</span><button type="button" class="btn btn-secondary dev-btn" data-i="${i}" aria-label="${esc(aria)}">Devolver</button></div>`;
 }
 function renderRegDev() {
@@ -2126,41 +2142,42 @@ function renderRegDev() {
     ? devRows.map((h, i) => devRowHtml(h, i, true)).join('')
     : '<div class="empty-line"><span>Ninguém está com material da sala agora.</span></div>';
   $('rDevFoot').textContent = devRows.length
-    ? 'Toque em Devolver quando o material voltar. Material de consumo não aparece aqui.'
+    ? 'Toque em Devolver quando o material voltar. Se perdeu ou quebrou, use Não vai voltar. Material de consumo não aparece aqui.'
     : 'Cada saída aparece aqui até ser devolvida. Material de consumo não aparece aqui.';
 }
-/* Devolve o que a pessoa está levando: tudo de uma vez, ou pergunta quanto voltou.
+/* Devolve o que a pessoa está levando (tudo ou parte), ou registra que não vai voltar
+   (perdeu, quebrou, gastou): fecha a pendência sem mexer no estoque.
    foco() diz onde o foco cai depois (a linha some quando tudo volta). */
 async function devolver(h, trigger, foco) {
   const m = matById(h.mat);
   const atual = m && foraDe(m.id).find(x => x.k === h.k);
   if (!atual) { toast('Esse material já foi devolvido.'); return false; }
-  let q = atual.qtd;
-  if (q > 1) {
-    const quem = atual.nome || 'A pessoa';
-    const r = await confirmar({
-      titulo: 'Devolução',
-      msg: `${quem} está com ${fmtQ(atual.qtd, m.un)} de “${m.nome}”. Quanto voltou?`,
-      okTexto: 'Devolver', okTipo: 'accent', trigger,
-      campo: {
-        valor: NF_RAW.format(atual.qtd), rotulo: 'Quantidade devolvida',
-        sufixo: v => { const x = parseQtd(v); return unidade(m.un, Number.isFinite(x) ? x : atual.qtd); },
-        validar: v => qtyError(v, false) || (round3(parseQtd(v)) > atual.qtd + 1e-9 ? `${quem} está com ${fmtQ(atual.qtd, m.un)}.` : '')
-      }
-    });
-    if (r === false) return false;
-    const agora = matById(m.id) && foraDe(m.id).find(x => x.k === h.k);
-    if (!agora) { toast('Esse material já foi devolvido.'); return false; }
-    q = Math.min(round3(parseQtd(r)), agora.qtd);
-  }
-  const mov = { id: uid(), mat: m.id, tipo: 'in', qtd: q, data: nowLocal(), resp: atual.nome, obs: '', dev: true };
+  const quem = atual.nome || 'A pessoa', varios = atual.qtd > 1;
+  const r = await confirmar({
+    titulo: 'Devolução',
+    msg: varios ? `${quem} está com ${fmtQ(atual.qtd, m.un)} de “${m.nome}”. Quanto voltou?` : `${quem} devolveu ${fmtQ(atual.qtd, m.un)} de “${m.nome}”?`,
+    okTexto: 'Devolver', okTipo: 'accent', extra: 'Não vai voltar', focoOk: true, trigger,
+    campo: varios ? {
+      valor: NF_RAW.format(atual.qtd), rotulo: 'Quantidade',
+      sufixo: v => { const x = parseQtd(v); return unidade(m.un, Number.isFinite(x) ? x : atual.qtd); },
+      validar: v => qtyError(v, false) || (round3(parseQtd(v)) > atual.qtd + 1e-9 ? `${quem} está com ${fmtQ(atual.qtd, m.un)}.` : '')
+    } : null
+  });
+  if (r === false) return false;
+  const baixa = typeof r === 'object' && r.extra === true;
+  const valor = typeof r === 'string' ? r : baixa ? r.valor : undefined;
+  const agora = matById(m.id) && foraDe(m.id).find(x => x.k === h.k);
+  if (!agora) { toast('Esse material já foi devolvido.'); return false; }
+  const q = valor === undefined ? agora.qtd : Math.min(round3(parseQtd(valor)), agora.qtd);
+  const mov = { id: uid(), mat: m.id, tipo: 'in', qtd: q, data: nowLocal(), resp: agora.nome, obs: '', dev: true };
+  if (baixa) mov.baixa = true;
   mutate(() => db.movs.push(mov));
   renderAll();
   refreshSheets();
   /* com o alerta ainda fechando, o foco só pode ir para fora dele quando ele fechar */
   if ($('alertDlg').open) $('alertDlg')._focusTo = foco;
   else { const t = foco(); if (t) t.focus({ preventScroll: true }); }
-  toast('Devolução registrada', { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
+  toast(baixa ? 'Registrado que não vai voltar' : 'Devolução registrada', { sub: `${fmtQ(q, m.un)} de `, nome: m.nome, undo: true });
   return true;
 }
 /* depois de devolver, o foco vai para o botão que ocupou o lugar (ou para onde fizer sentido) */
@@ -2182,18 +2199,20 @@ const histTipoRG = radiogroup($('fHistTipo'), v => { histTipo = v; histLimit = 1
 function histRowHtml(v, i, md, compact) {
   const m = matMap.get(v.mat);
   const un = m ? m.un : 'un', tipo = v.tipo === 'in' ? 'in' : 'out';
-  const qty = (tipo === 'in' ? '+' : MINUS) + NF.format(v.qtd) + NBSP + esc(unidade(un, v.qtd));
+  const nv = v.baixa === true;
+  const qty = (nv ? '' : tipo === 'in' ? '+' : MINUS) + NF.format(v.qtd) + NBSP + esc(unidade(un, v.qtd));
+  const qcls = nv ? 'nv' : tipo;
   const nome = m ? esc(m.nome) : '<span class="orphan">Material excluído</span>';
   const hm = v.data.slice(11, 16);
-  const obs = v.dev === true && tipo === 'in' ? ['Devolução', v.obs].filter(Boolean).join(' · ') : v.obs;
+  const obs = v.dev === true && tipo === 'in' ? [movTitulo(v), v.obs].filter(Boolean).join(' · ') : v.obs;
   const aria = esc(`${movTitulo(v)} de ${fmtQ(v.qtd, un)} de ${m ? m.nome : 'material excluído'}${v.resp ? ', ' + v.resp : ''}, ${dayLabel(v.data.slice(0, 10))}, ${hm}${v.obs ? ', ' + v.obs : ''}`);
   if (md === 'mob' || compact) {
     const sub = [v.resp, obs].filter(Boolean).join(' · ');
-    return `<button type="button" class="row two" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${nome}</span>${sub ? `<span class="meta">${esc(sub)}</span>` : ''}</span><span class="h-right"><span class="h-qty ${tipo}">${qty}</span><span class="h-time">${hm}</span></span>${md === 'mob' ? '' : CHEV}</button>`;
+    return `<button type="button" class="row two" data-i="${i}" aria-label="${aria}"><span class="c-name"><span class="nm">${nome}</span>${sub ? `<span class="meta">${esc(sub)}</span>` : ''}</span><span class="h-right"><span class="h-qty ${qcls}">${qty}</span><span class="h-time">${hm}</span></span>${md === 'mob' ? '' : CHEV}</button>`;
   }
   return `<button type="button" class="row" data-i="${i}" aria-label="${aria}"><span class="h-time">${hm}</span><span class="h-mat"${m ? ` title="${esc(m.nome)}"` : ''}>${nome}</span><span class="h-resp">${esc(v.resp)}</span>` +
     (md === 'wide' ? `<span class="h-obs"${obs ? ` title="${esc(obs)}"` : ''}>${esc(obs)}</span>` : '') +
-    `<span class="h-qty ${tipo}">${qty}</span>${CHEV}</button>`;
+    `<span class="h-qty ${qcls}">${qty}</span>${CHEV}</button>`;
 }
 function syncHistMat() {
   if (histMatVer === ver) return;
@@ -2212,7 +2231,7 @@ function renderHistorico() {
   list.className = `list hist mode-${md}`;
   const q = fold($('fHistBusca').value.trim());
   const filtrado = !!(q || histTipo || histMatId);
-  const res = filtrado ? sortedMovs.filter(v => (!histTipo || v.tipo === histTipo) && (!histMatId || v.mat === histMatId) && (!q || foldOfMov(v).includes(q))) : sortedMovs;
+  const res = filtrado ? sortedMovs.filter(v => (!histTipo || (v.tipo === histTipo && v.baixa !== true)) && (!histMatId || v.mat === histMatId) && (!q || foldOfMov(v).includes(q))) : sortedMovs;
   histRes = res; histState = histKey();
   const total = db.movs.length;
   $('histSub').innerHTML = filtrado
@@ -2380,7 +2399,7 @@ const descartar = () => confirmar({ titulo: 'Descartar alterações?', msg: 'O q
 /* Alerta único: confirmar({titulo, msg, aviso, okTexto, okTipo, campo}) → Promise */
 let alertResolve = null, alertCampo = null;
 function alertSettle(v) { const r = alertResolve; alertResolve = null; alertCampo = null; if (r) r(v); }
-function confirmar({ titulo, msg = '', aviso = '', okTexto = 'OK', okTipo = 'danger', cancelTexto = 'Cancelar', campo = null, trigger } = {}) {
+function confirmar({ titulo, msg = '', aviso = '', okTexto = 'OK', okTipo = 'danger', cancelTexto = 'Cancelar', extra = '', focoOk = false, campo = null, trigger } = {}) {
   alertSettle(false);
   $('alertTitle').textContent = titulo;
   $('alertMsg').textContent = msg;
@@ -2389,6 +2408,8 @@ function confirmar({ titulo, msg = '', aviso = '', okTexto = 'OK', okTipo = 'dan
   $('alertOk').textContent = okTexto;
   $('alertOk').className = okTipo === 'danger' ? 'danger' : '';
   $('alertCancel').textContent = cancelTexto;
+  /* terceira ação opcional: resolve {extra: true, valor} */
+  $('alertExtra').textContent = extra; $('alertExtra').hidden = !extra;
   alertCampo = campo;
   $('alertField').hidden = !campo;
   if (campo) {
@@ -2401,21 +2422,25 @@ function confirmar({ titulo, msg = '', aviso = '', okTexto = 'OK', okTipo = 'dan
     const dlg = $('alertDlg');
     if (dlg.open) dlg.close();
     alertResolve = res;
-    openDialog(dlg, { trigger, focus: campo ? $('alertInput') : $('alertCancel') });
+    const alvo = campo ? $('alertInput') : focoOk ? $('alertOk') : $('alertCancel');
+    openDialog(dlg, { trigger, focus: alvo });
     alertLayout();
+    /* reordenar os botões tira o foco do que foi movido */
+    if (document.activeElement !== alvo) alvo.focus({ preventScroll: true });
     if (campo) $('alertInput').select();
   });
 }
 function alertLayout() {
-  const box = $('alertBtns'), ok = $('alertOk'), cancel = $('alertCancel');
+  const box = $('alertBtns'), ok = $('alertOk'), cancel = $('alertCancel'), ex = $('alertExtra');
   box.classList.remove('stacked');
-  box.append(cancel, ok);
+  box.append(cancel, ok, ex);
   const over = b => b.scrollWidth > b.clientWidth + 1;
-  if (over(ok) || over(cancel)) { box.classList.add('stacked'); box.append(ok, cancel); }
+  if (!ex.hidden || over(ok) || over(cancel)) { box.classList.add('stacked'); box.append(ok, ex, cancel); }
 }
 $('alertCancel').addEventListener('click', () => { alertSettle(false); closeDialog($('alertDlg')); });
-$('alertOk').addEventListener('click', alertOk);
-function alertOk() {
+$('alertOk').addEventListener('click', () => alertOk(false));
+$('alertExtra').addEventListener('click', () => alertOk(true));
+function alertOk(extra) {
   if (alertCampo) {
     const v = $('alertInput').value, err = alertCampo.validar(v);
     if (err) {
@@ -2424,11 +2449,11 @@ function alertOk() {
       $('alertInput').focus(); $('alertInput').select();
       return;
     }
-    alertSettle(v);
-  } else alertSettle(true);
+    alertSettle(extra ? { extra: true, valor: v } : v);
+  } else alertSettle(extra ? { extra: true } : true);
   closeDialog($('alertDlg'));
 }
-$('alertInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); alertOk(); } });
+$('alertInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); alertOk(false); } });
 $('alertInput').addEventListener('input', () => {
   $('alertErr').hidden = true; $('alertInput').removeAttribute('aria-invalid');
   if (alertCampo && alertCampo.sufixo) $('alertSuffix').textContent = alertCampo.sufixo($('alertInput').value);
@@ -2480,8 +2505,8 @@ function fillMaterial() {
   const ult = sortedMovs.filter(v => v.mat === m.id);
   $('smUltimas').innerHTML = ult.length
     ? ult.slice(0, 5).map(v => {
-        const q = v.tipo === 'in' ? v.qtd : -v.qtd;
-        return `<div class="row static"><span class="mv-l"><span class="mv-q ${v.tipo === 'in' ? 'in' : 'out'}">${esc(fmtSigned(q, m.un))}</span>${v.resp ? ' · ' + esc(v.resp) : ''}${v.dev === true && v.tipo === 'in' ? ' · devolução' : ''}</span><span class="mv-when">${esc(whenShort(v.data))}</span></div>`;
+        const q = v.tipo === 'in' ? v.qtd : -v.qtd, nv = v.baixa === true;
+        return `<div class="row static"><span class="mv-l"><span class="mv-q ${nv ? 'nv' : v.tipo === 'in' ? 'in' : 'out'}">${esc(nv ? fmtQ(v.qtd, m.un) : fmtSigned(q, m.un))}</span>${v.resp ? ' · ' + esc(v.resp) : ''}${v.dev === true && v.tipo === 'in' ? ' · ' + movTitulo(v).toLowerCase() : ''}</span><span class="mv-when">${esc(whenShort(v.data))}</span></div>`;
       }).join('') + `<button type="button" class="row act" id="smVerHist"><span>Ver tudo no Histórico</span>${CHEV}</button>`
     : '<div class="row static"><span class="mv-l orphan">Nenhuma movimentação ainda.</span></div>';
 }
@@ -2761,7 +2786,7 @@ function fillRegistro() {
   $('srValores').innerHTML =
     (m ? `<button type="button" class="kv-row" id="srMaterial"><span class="k">Material</span><span class="v">${esc(m.nome)}</span>${CHEV}</button>`
        : '<div class="kv-row"><span class="k">Material</span><span class="v">Material excluído</span></div>') +
-    `<div class="kv-row"><span class="k">Quantidade</span><span class="v">${esc(fmtSigned(v.tipo === 'in' ? v.qtd : -v.qtd, un))}</span></div>` +
+    `<div class="kv-row"><span class="k">Quantidade</span><span class="v">${esc(v.baixa === true ? fmtQ(v.qtd, un) + ' (não mexe no estoque)' : fmtSigned(v.tipo === 'in' ? v.qtd : -v.qtd, un))}</span></div>` +
     `<div class="kv-row"><span class="k">Responsável</span><span class="v">${esc(v.resp || '—')}</span></div>` +
     `<div class="kv-row"><span class="k">Observação</span><span class="v">${esc(v.obs || '—')}</span></div>` +
     `<div class="kv-row"><span class="k">Quando</span><span class="v">${esc(whenFull(v.data))}</span></div>` +
@@ -2781,12 +2806,12 @@ $('srExcluir').addEventListener('click', async e => {
   const v = db.movs.find(x => x.id === srId); if (!v) return;
   const m = matById(v.mat), un = m ? m.un : 'un';
   let aviso = '', okTexto = 'Excluir';
-  if (v.tipo === 'in' && m) {
+  if (v.tipo === 'in' && v.baixa !== true && m) {
     const depois = round3(saldoOf(m.id) - v.qtd);
     if (depois < 0) { aviso = `O saldo de ${m.nome} ficaria ${fmtQ(depois, un)}.`; okTexto = 'Excluir mesmo assim'; }
   }
   const ok = await confirmar({
-    titulo: `Excluir esta ${movTitulo(v).toLowerCase()}?`,
+    titulo: v.baixa === true ? 'Excluir este registro?' : `Excluir esta ${movTitulo(v).toLowerCase()}?`,
     msg: `${fmtQ(v.qtd, un)} de ${m ? m.nome : 'material excluído'}${v.resp ? ' · ' + v.resp : ''} · ${whenShort(v.data)}`,
     aviso, okTexto, okTipo: 'danger', trigger: e.currentTarget
   });
